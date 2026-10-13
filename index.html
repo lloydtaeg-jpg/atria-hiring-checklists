@@ -23,6 +23,13 @@
     a.role .abbr { font-size: 10px; letter-spacing: 0.18em; opacity: 0.85; margin-top: 3px; }
     a.role .arrow { font-size: 1.2rem; }
     .roletext { display: grid; }
+    .divider { height: 1px; background: rgba(47,42,36,.1); margin: 26px 0 18px; }
+    .section-head { font-size: 10px; text-transform: uppercase; letter-spacing: 0.28em; color: #8b7155; margin: 0 0 12px; font-weight: 700; }
+    a.doc { display: flex; align-items: center; justify-content: space-between; text-decoration: none; background: #faf7f0; border: 1px solid rgba(47,42,36,.12); border-left: 4px solid #8b7155; border-radius: 13px; padding: 14px 16px; color: #2f2a24; transition: border-color .15s, box-shadow .15s, transform .15s; }
+    a.doc:hover { border-color: #8b7155; box-shadow: 0 6px 16px rgba(139,113,85,.15); transform: translateY(-1px); }
+    a.doc .label { font-weight: 700; font-size: 0.95rem; }
+    a.doc .meta { font-size: 10px; letter-spacing: 0.18em; color: #8b8273; margin-top: 3px; text-transform: uppercase; }
+    a.doc .arrow { font-size: 1.2rem; color: #8b7155; }
     .foot { margin-top: 26px; font-size: 11px; letter-spacing: 0.04em; color: #a49a8b; }
   </style>
 </head>
@@ -52,6 +59,12 @@
         <span class="arrow">&rarr;</span>
       </a>
     </div>
+    <div class="divider"></div>
+    <p class="section-head">Administration Documents</p>
+    <a class="doc" href="sop-binder.pdf" target="_blank" rel="noopener">
+      <div class="roletext"><span class="label">Standard Operating Procedures Binder</span><span class="meta">SOP &middot; PDF</span></div>
+      <span class="arrow">&rarr;</span>
+    </a>
     <div class="foot">Atria Private Care — Internal onboarding use only</div>
   </div>
 </body>
