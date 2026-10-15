@@ -16,7 +16,11 @@ these:
    never appeared off-platform. Now always shown on a pass.
 3. **Result saving.** No shared database here, so the result is written to
    `localStorage` and the on-screen message tells the staff member to send
-   their certificate to the office.
+   their certificate to the office. On a pass the page offers three ways to
+   do that — **Email my certificate** (a `mailto:` to `RETURN_EMAIL` with
+   name, module, version, score and date in the body), print/save as PDF,
+   and download — matching Move Safe. Completions are not tracked anywhere;
+   the emailed certificate is the record.
 4. **Prior attempt.** Reads that `localStorage` record so someone returning
    on the same device sees their last score.
 

@@ -28,6 +28,14 @@ same 21/26 pass mark, same certificate. Only the shell changed.
 4. **Hero removed** — the old hero repeated the title now in the brandbar,
    and the amber hazard `stripe` clashed with the palette. Replaced with the
    same `intro` block Care by the Book uses.
+5. **Certificate branded** — the on-screen and downloaded certificates still
+   used the old palette with no logo. Both now carry the Atria mark and the
+   teal treatment, the same certificate Care by the Book issues.
+
+The **Email my certificate** button was already here and still works: a
+`mailto:` to `RETURN_EMAIL` carrying name, module, version, score and date.
+Care by the Book now has the same three buttons. That email is the only
+record of a completion, so do not remove it.
 
 Keep the two modules' brand layers in step: they are copied, not shared, so
 a change to Care by the Book's does not reach this one.

@@ -733,7 +733,9 @@ document.getElementById("gradeBtn").onclick = async ()=>{
     qEl.classList.add("graded");
     res.innerHTML=`<div class="result pass"><h3>You passed: ${score}/${QUIZQ.length}</h3><p style="margin:0">Read the explanations above for anything you missed.</p><p id="saveStatus" class="hint" style="margin:8px 0 0"></p></div>
     <div class="cert"><div class="logo-mark"><img src="${LOGO}" alt=""></div><div class="hint">Atria Private Care · Certificate of completion</div><div class="who"></div><div>has completed <strong>Care by the Book: Atria Client Care Procedures</strong></div><div class="hint" style="margin-top:8px">Score ${score}/${QUIZQ.length} · ${date} · Module v${MODULE_VERSION}</div></div>
-    <button class="btn ghost hidden" id="dlBtn" style="width:100%;margin-top:12px">Save certificate</button>`;
+    <div class="certActions"><button class="btn hidden" id="mailBtn" style="width:100%;margin-top:12px">Email my certificate</button>
+    <button class="btn ghost hidden" id="printBtn" style="width:100%;margin-top:10px">Print or save as PDF</button>
+    <button class="btn ghost hidden" id="dlBtn" style="width:100%;margin-top:10px">Download certificate</button></div>`;
     res.querySelector(".who").textContent=staffName;
   } else {
     const missed={}; QUIZQ.forEach((q,i)=>{ if(answers[i]!==q.a) missed[q.s]=(missed[q.s]||0)+1; });
@@ -742,7 +744,9 @@ document.getElementById("gradeBtn").onclick = async ()=>{
   }
   res.scrollIntoView({behavior:"smooth",block:"start"});
   await saveRecord(score,passed);
-  const dl=document.getElementById("dlBtn");
+  const mail=document.getElementById("mailBtn"), pr=document.getElementById("printBtn"), dl=document.getElementById("dlBtn");
+  if(mail){ mail.classList.remove("hidden"); mail.onclick=()=>emailCert(score,date); }
+  if(pr){ pr.classList.remove("hidden"); pr.onclick=()=>window.print(); }
   if(dl){ dl.classList.remove("hidden"); dl.onclick=()=>saveCert(score,date); }
 };
 
@@ -752,7 +756,7 @@ async function saveRecord(score,didPass){
     try{ localStorage.setItem("cbtb_record", JSON.stringify({name:staffName, score:score, passed:didPass,
       total:QUIZQ.length, completedAt:new Date().toISOString(), version:MODULE_VERSION})); }catch(e){}
     if(st) st.textContent = didPass
-      ? "Download your certificate below and send it to the office so it can be filed in your training record."
+      ? "Send your certificate to the office using the buttons below, so it can be filed in your training record."
       : "Review the answers marked above, then submit again. Nothing is sent to the office until you pass and send your certificate.";
     return; }
   try{
@@ -764,6 +768,17 @@ async function saveRecord(score,didPass){
     await ref.set(rec);
     if(st) st.textContent = didPass ? "Your completion has been recorded for your employer." : "This attempt has been recorded.";
   }catch(e){ if(st) st.textContent="Your result couldn't be recorded. Show your certificate to your supervisor."; }
+}
+
+const RETURN_EMAIL = "tlloyd@whtalife.com";
+
+function certLines(score,date){
+  return `Name: ${staffName}\nModule: Care by the Book: Atria Client Care Procedures (v${MODULE_VERSION})\nResult: Passed, ${score}/${QUIZQ.length}\nDate completed: ${date}`;
+}
+function emailCert(score,date){
+  const subj=`Care by the Book certificate - ${staffName}`;
+  const body=`Hello,\n\nI have completed the Care by the Book training module.\n\n${certLines(score,date)}\n\nThank you,\n${staffName}`;
+  location.href=`mailto:${RETURN_EMAIL}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
 }
 
 async function saveCert(score,date){

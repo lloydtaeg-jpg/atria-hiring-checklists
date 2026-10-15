@@ -843,6 +843,7 @@ input[type=text]{border-width:1px;border-radius:6px;background:var(--card)}
 <script>
 (function(){
 const MODULE_VERSION = "2026.4";
+const LOGO = document.querySelector(".logo-mark img").getAttribute("src");
 const steps = [...document.querySelectorAll("section.step")];
 const QUIZ = steps.findIndex(s=>s.dataset.role==="quiz"), LAST_CONTENT = QUIZ-1, SOURCES = QUIZ+1;
 const PASS_MARK = 21;
@@ -1139,7 +1140,7 @@ document.getElementById("gradeBtn").onclick = async ()=>{
   if(passed){
     qEl.classList.add("graded");
     res.innerHTML=`<div class="result pass"><h3>You passed — ${score}/${QUIZQ.length}</h3><p style="margin:0">Read the explanations above for anything you missed.</p><p id="saveStatus" class="hint" style="margin:8px 0 0"></p></div>
-    <div class="cert" id="cert"><div class="hint">Certificate of completion</div><div class="who"></div><div>has completed <strong>Move Safe: Client Handling for Home Care</strong></div><div class="hint" style="margin-top:8px">Score ${score}/${QUIZQ.length} · ${date} · Module v${MODULE_VERSION}</div></div>
+    <div class="cert" id="cert"><div class="logo-mark"><img src="${LOGO}" alt=""></div><div class="hint">Atria Private Care · Certificate of completion</div><div class="who"></div><div>has completed <strong>Move Safe: Client Handling for Home Care</strong></div><div class="hint" style="margin-top:8px">Score ${score}/${QUIZQ.length} · ${date} · Module v${MODULE_VERSION}</div></div>
     <div class="certActions"><button class="btn" id="mailBtn" style="width:100%;margin-top:12px">Email my certificate</button>
     <button class="btn ghost" id="printBtn" style="width:100%;margin-top:10px">Print or save as PDF</button>
     <button class="btn ghost" id="dlBtn" style="width:100%;margin-top:10px">Download certificate</button></div>`;
@@ -1174,7 +1175,7 @@ function emailCert(score,date){
 }
 function saveCert(score,date){
   const safe=staffName.replace(/[<>&"]/g,"");
-  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Move Safe certificate - ${safe}</title></head><body style="font-family:Georgia,serif;text-align:center;padding:40px 20px;border:6px double #15303C;margin:20px"><p>Certificate of completion</p><h1 style="font-size:36px">${safe}</h1><p>has completed</p><h2>Move Safe: Client Handling for Home Care</h2><p>Score ${score}/${QUIZQ.length} &middot; ${date} &middot; Module v${MODULE_VERSION}</p></body></html>`;
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Move Safe certificate - ${safe}</title></head><body style="font-family:Georgia,'Times New Roman',serif;color:#2C3E3E;background:#FAFAF8;text-align:center;margin:30px;padding:50px;border:6px double #6F9797"><div style="width:90px;height:90px;border-radius:50%;overflow:hidden;background:#FAF8F2;margin:0 auto 14px;display:flex;align-items:center;justify-content:center"><img src="${LOGO}" style="width:130%;height:130%;object-fit:contain" alt=""></div><p style="color:#5A8282;letter-spacing:1px;font-size:14px">ATRIA PRIVATE CARE</p><p>Certificate of completion</p><h1 style="font-size:40px;color:#5A8282;margin:10px 0">${safe}</h1><p>has completed</p><h2>Move Safe: Client Handling for Home Care</h2><p style="color:#4A6060">Score ${score}/${QUIZQ.length} &middot; ${date} &middot; Module v${MODULE_VERSION}</p></body></html>`;
   try{
     const a=document.createElement("a");
     a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));
