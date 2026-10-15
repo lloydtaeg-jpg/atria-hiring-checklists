@@ -13,6 +13,7 @@ import re, html, json, sys, glob, os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CACHE = os.path.join(ROOT, "tools", "doc-cache")
+OVERRIDES = os.path.join(ROOT, "tools", "sop-overrides")
 OUT = os.path.join(ROOT, "sop-binder.html")
 
 
@@ -190,6 +191,30 @@ def style_fragments(frags):
         else:
             out.append(f)
     return "".join(out)
+
+
+def load_overrides():
+    """Local replacements for individual SOPs, merged over what the doc says.
+
+    tools/sop-overrides/<number>.html holds the body of one SOP exactly as the
+    builder emits it: paragraphs, .lbl/.sublbl labels, .tablewrap tables, lists
+    and a .doc-note. An optional leading "<!-- title: ... -->" comment renames
+    the SOP.
+
+    These exist only because the binder's Claude Doc could not be edited at the
+    time. Each one is a divergence from the doc: fold it back into the doc and
+    delete the file once the Docs connector is available.
+    """
+    out = {}
+    if not os.path.isdir(OVERRIDES):
+        return out
+    for f in sorted(glob.glob(os.path.join(OVERRIDES, "*.html"))):
+        num = os.path.splitext(os.path.basename(f))[0]
+        body = open(f, encoding="utf-8").read()
+        t = re.search(r"<!--\s*title:\s*(.+?)\s*-->", body)
+        body = re.sub(r"<!--.*?-->", "", body, flags=re.S).strip()
+        out[num] = {"title": t.group(1) if t else None, "html": body}
+    return out
 
 
 # ------------------------------------------------------------- parse ----
@@ -509,6 +534,21 @@ MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
 def main():
     blocks = merge(load_chunks())
     front, body = parse(blocks)
+
+    overrides = load_overrides()
+    applied = []
+    for b in body:
+        if b["kind"] == "sop" and b["num"] in overrides:
+            ov = overrides[b["num"]]
+            b["html"] = [ov["html"]]
+            if ov["title"]:
+                b["title"] = ov["title"]
+            applied.append(b["num"])
+    unused = sorted(set(overrides) - set(applied))
+    if applied:
+        print("local overrides applied to SOP %s" % ", ".join(applied), file=sys.stderr)
+    if unused:
+        print("warning: overrides with no matching SOP: %s" % ", ".join(unused), file=sys.stderr)
 
     sops = [b for b in body if b["kind"] == "sop"]
     if not sops:

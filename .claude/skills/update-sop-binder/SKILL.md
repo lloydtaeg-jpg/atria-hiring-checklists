@@ -61,6 +61,23 @@ A wording fix belongs in the doc.
    `curl -s -o /dev/null -w '%{http_code}' https://lloydtaeg-jpg.github.io/atria-hiring-checklists/sop-binder.html`
    Pages takes up to a few minutes; poll rather than assuming.
 
+## Local overrides
+
+`tools/sop-overrides/<number>.html` replaces one SOP's body with local
+content, merged by the build script after the doc is parsed. The build prints
+which ones it applied, and warns about any whose SOP number it could not find
+(usually a renumbering in the doc).
+
+**SOP 31 is currently overridden.** The doc still holds the old stub that
+pointed staff at a separate Client Falls Response document; the override is
+the full procedure, Part A in the home and Part B outside it. It exists only
+because the Claude Docs connector was unavailable when it was written.
+
+When the connector is available, fold the override's content into the doc as
+SOP 31, delete `tools/sop-overrides/31.html`, and rebuild. Until then the
+binder page and the doc genuinely differ on SOP 31 — the page is the correct
+one. Do not "fix" the page by removing the override.
+
 ## Known quirks of the source doc
 
 Both are handled by the build script, but say so if the user asks why the
