@@ -32,6 +32,17 @@ Note: this Netlify account now creates sites with SSO protection on by
 default, which returns 401 to staff. Sites must have `sso_login` set to
 false to be publicly reachable.
 
+## Local additions (not in the artifact)
+
+Section 11, **Travel with clients** (SOPs 51 and 52: Pilatus PC-12 air
+travel and vacation travel), plus its six quiz questions, were added here.
+Module version bumped to 1.2 so anyone who passed 1.1 is asked to retake it,
+and the pass mark moved from 47/50 to 53/56 — still three wrong allowed.
+
+The claude.ai artifact does **not** have this section. Either republish this
+file to it, or re-apply the four off-platform changes above after editing
+there, or the two will keep drifting apart.
+
 ## Limitation
 
 Results are **not** recorded centrally — `localStorage` is per-device and

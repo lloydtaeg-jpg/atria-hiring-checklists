@@ -339,9 +339,9 @@ input[type=text]{border-width:1px;border-radius:6px;background:var(--card)}
   </div>
 </header>
 <div class="meta-bar"><div class="meta-bar-in">
-  <div class="field"><b>Covers:</b>Client care SOPs</div>
-  <div class="field"><b>Time:</b>About 45 minutes</div>
-  <div class="field"><b>Pass mark:</b>47 of 50</div>
+  <div class="field"><b>Covers:</b>Client care SOPs, including travel</div>
+  <div class="field"><b>Time:</b>About 55 minutes</div>
+  <div class="field"><b>Pass mark:</b>53 of 56</div>
 </div></div>
 
 <div class="route" id="route" aria-hidden="true">
@@ -354,13 +354,13 @@ input[type=text]{border-width:1px;border-radius:6px;background:var(--card)}
 <main class="wrap" id="main">
 
 <section class="step on" data-name="Welcome">
-  <div class="intro" style="margin-top:22px">This is required training for all direct care staff. Work through ten short sections, each built from the Atria SOP Binder, then take the final check. Enter your name below to begin.</div>
+  <div class="intro" style="margin-top:22px">This is required training for all direct care staff. Work through eleven short sections, each built from the Atria SOP Binder, then take the final check. Enter your name below to begin.</div>
   <div class="panel stack">
     <div>
       <label class="field" for="staffName">Your full name</label>
       <input type="text" id="staffName" autocomplete="name" placeholder="As it should appear on your certificate">
     </div>
-    <p class="hint">The check has 50 questions and you need 47 to pass. Each section names the SOPs it covers so you can look up the full version, and you can retake the check as many times as you need.</p>
+    <p class="hint">The check has 56 questions and you need 53 to pass. Each section names the SOPs it covers so you can look up the full version, and you can retake the check as many times as you need.</p>
     <div id="priorRecord" class="note hidden"></div>
     <button class="btn" id="startBtn" disabled>Start the module</button>
   </div>
@@ -380,8 +380,8 @@ input[type=text]{border-width:1px;border-radius:6px;background:var(--card)}
 
 <section class="step" data-name="The check" id="quizStep">
   <p class="eyebrow">Final check</p>
-  <h2>50 questions</h2>
-  <p>47 correct to pass. Pick the best answer for each. If you don't pass, the wrong answers are marked so you can review and try again.</p>
+  <h2>56 questions</h2>
+  <p>53 correct to pass. Pick the best answer for each. If you don't pass, the wrong answers are marked so you can review and try again.</p>
   <div id="quiz"></div>
   <button class="btn" id="gradeBtn" style="width:100%;margin-top:10px">Submit answers</button>
   <div id="result"></div>
@@ -398,9 +398,9 @@ input[type=text]{border-width:1px;border-radius:6px;background:var(--card)}
 
 <script>
 (function(){
-const MODULE_VERSION = "1.1";
+const MODULE_VERSION = "1.2";
 const LOGO = document.querySelector(".logo-mark img").getAttribute("src");
-const PASS_MARK = 47;
+const PASS_MARK = 53;
 
 const SECTIONS = [
 {name:"Privacy and conduct", sops:"SOPs 9, 11, 41, 45, 48",
@@ -553,6 +553,27 @@ const SECTIONS = [
      ["Don't. Chart each visit during or right after it, and before the end of your shift.",1,"Right. Only document care after you've given it."],
      ["Ask a co-worker to chart it for you if you run late.",0,"Never document for someone else, and never let someone document for you."]]}
 }
+,
+{name:"Travel with clients", sops:"SOPs 51, 52",
+ lede:"Flying a client on the Pilatus PC-12, or taking one away on vacation, moves them away from everything familiar and away from help. Almost all of the safety sits in the planning; on the day, the pilot and the care plan decide, not the schedule.",
+ rules:[
+  ["Nothing approaches a turning propeller","Loading starts only after the pilot confirms the engine is shut down and the propeller has stopped. The client waits inside until then, however cold, tired or behind schedule you are.","SOP 51",1],
+  ["The pilot has the final word","The pilot-in-command has authority over everything on and around the aircraft. Atria staff look after the client; the operator's crew look after the aircraft and the lift.","SOP 51"],
+  ["Clients never fly seated in their wheelchair","Transfer the client into an aircraft seat with the seat belt fastened. The wheelchair and walker are folded and secured as the crew directs, with the cushion and any loose parts kept in the cabin.","SOP 51"],
+  ["Approved in advance, or it doesn't fly","Oxygen, portable concentrators, power-chair and lithium batteries and medical devices all need the operator's written approval beforehand. Never bring them unapproved.","SOP 51"],
+  ["Only trained staff take part in the lift","Inspect the lift before use. The client stays seated with the brakes on and the safety belt fastened, and never stands on the platform. One staff member stays beside them and talks them through every movement.","SOP 51"],
+  ["Watch the client in the air","Shortness of breath, chest pain, new confusion, pale or blue lips, ear pain or nausea: tell the pilot straight away. The pilot decides whether to divert. Give oxygen only as prescribed and approved.","SOP 51"],
+  ["Six weeks, not six days","A trip starts with an RN travel assessment, written medical clearance and a trip-specific travel care plan. Insurance, accessible rooms, equipment rental and medication rules all take weeks to arrange.","SOP 52"],
+  ["Scope doesn't travel","Atria nurses may only practise nursing where they are registered. Outside Ontario, check before you go: if you are not registered there you travel in a companion or personal support role only, and the travel care plan says so.","SOP 52",1],
+  ["Medications travel in hand luggage","Original pharmacy-labelled containers or blister packs, at least 7 days' extra supply, split between two bags where possible, with the physician's letter listing diagnoses and all medications. Check the destination's rules before you pack.","SOP 52"],
+  ["Check in daily, and you are still on shift","Call the RN or on-call at least once a day, and straight away for any change in condition, fall or incident. No alcohol on shift, and personal time only during scheduled time off.","SOP 52"]
+ ],
+ scene:{h:"On the ramp",
+  t:"You arrive at the terminal with a client who uses a power wheelchair. The aircraft is waiting and its propeller is still turning. She is cold, tired of waiting, and asks you to take her out so she can get settled.",
+  c:[["Wheel her out so she can board sooner",0,"Never. Nothing approaches a turning propeller. This is the one rule on the ramp with no exceptions (SOP 51)."],
+     ["Keep her inside until the pilot confirms the engine is off and the propeller has stopped",1,"Right. Loading starts only on the pilot's confirmation. Keep her warm and comfortable inside while you wait (SOP 51)."],
+     ["Ask the lift operator to load from the far side, away from the propeller",0,"No. The pilot decides when it is safe to approach, and loading waits for the propeller to stop whichever door is used (SOP 51)."]]}
+}
 ];
 
 const QUIZQ = [
@@ -616,6 +637,14 @@ const QUIZQ = [
  /* Documentation */
  {s:9,q:"You realize you entered the wrong blood pressure in a visit note an hour ago. What do you do?",o:["Delete the entry and re-enter it","Use the correction feature or a late entry, so the record shows what changed","Leave it; it's only one number","Ask a co-worker to fix it for you"],a:1,e:"Never delete an entry or let someone document for you (SOP 46)."},
  {s:9,q:"When is the incident report due after a client falls?",o:["Before the end of your shift","Within a week","Only if there's an injury","Whenever the RN asks for it"],a:0,e:"Every incident and near miss is reported the same shift (SOP 47)."}
+,
+ /* Travel with clients */
+ {s:10,q:"You are at the terminal with your client. The aircraft's propeller is still turning and she is cold and impatient. When can you start moving her toward it?",o:["Once the lift operator says they are ready","Only after the pilot confirms the engine is shut down and the propeller has stopped","As soon as the pilot waves you over","Any time, as long as you approach from behind the wing"],a:1,e:"Nothing approaches a turning propeller. Loading starts only on the pilot's confirmation that the engine is off and the propeller has stopped (SOP 51)."},
+ {s:10,q:"Your client uses a wheelchair. How does she travel once she is on board the PC-12?",o:["Seated in her own wheelchair with the brakes on","In her wheelchair, strapped to the cabin floor","Transferred into an aircraft seat with the seat belt fastened","Lying across two seats"],a:2,e:"Clients never fly seated in their wheelchair. Transfer into an aircraft seat with the belt fastened; the chair is folded and secured as the crew directs (SOP 51)."},
+ {s:10,q:"The family asks you to bring the client's portable oxygen concentrator and a spare lithium battery for her power chair. What has to happen first?",o:["Nothing, medical equipment is always allowed","The operator approves both in writing before the flight","Pack them in the hold so they are out of the way","Tell the pilot when you get to the aircraft"],a:1,e:"Oxygen, concentrators, lithium and power-chair batteries and medical devices need the operator's written approval in advance. Unapproved, they do not fly (SOP 51)."},
+ {s:10,q:"Mid-flight your client becomes short of breath and her lips look blue. What do you do?",o:["Wait until landing so you do not alarm the pilot","Tell the pilot immediately; the pilot decides whether to divert","Give oxygen from the aircraft's emergency supply","Move her to another seat and keep watching her"],a:1,e:"Tell the pilot straight away about any medical change: the pilot decides on diversion. Oxygen is given only as prescribed and approved by the operator (SOP 51)."},
+ {s:10,q:"You are an RPN registered in Ontario only, travelling with a client to Florida for three weeks. What is your role on the trip?",o:["Full nursing care, since the client is Ontario-based","Nursing care, as long as you call the Atria RN first","Companion or personal support role only, written into the travel care plan","Whatever the family asks you to do"],a:2,e:"Scope doesn't travel. Nurses may only practise where they are registered. If you are not registered there you travel in a companion or PSW role, and the travel care plan says so (SOP 52)."},
+ {s:10,q:"How do the client's medications travel on a two-week trip?",o:["In a weekly pill organizer in the checked bag","Original labelled containers in hand luggage, with about a week's extra supply","Whatever fits, as long as you have the medication list","Checked baggage, so they are not taken at security"],a:1,e:"Original pharmacy-labelled containers or blister packs, in hand luggage, at least 7 days' extra supply, split between two bags where possible, with the physician's letter (SOP 52)."}
 ];
 
 const steps = ["Welcome", ...SECTIONS.map(s=>s.name), "The check"];
