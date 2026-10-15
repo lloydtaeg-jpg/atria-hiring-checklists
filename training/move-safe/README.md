@@ -56,16 +56,15 @@ or who to call belongs in Care by the Book, not here.
 
 ## Not synced
 
-The Claude artifact <https://claude.ai/artifact/4TH3mb7ErMjmw5Bxy75GFp> is
-**not** the same page as this one and must not be overwritten with it.
+The Claude artifact <https://claude.ai/artifact/4TH3mb7ErMjmw5Bxy75GFp> still
+has the old branding and the old falls content.
 
-That version declares the `user`, `db` and `downloads` capabilities and
-carries a "Staff completions" admin panel that records who has passed.
-Whoever made the public build stripped all of that out, so this file has no
-trace of it. Publishing this file to the artifact would delete the panel and
-every completion it tracks.
+It also declares the `user`, `db` and `downloads` capabilities and carries a
+"Staff completions" admin panel recording who has passed. The public build
+has none of that — whoever made it stripped the Claude runtime out — so
+publishing this file over the artifact would remove the panel.
 
-To sync them properly, merge the rebrand and the falls split onto the
-*artifact's* source rather than this one, so the capability code survives —
-the way Care by the Book is handled, where one file serves both because its
-`claude.use()` calls were kept.
+Taegan confirmed on 2026-10-15 that completion tracking is not wanted, so
+that is not a reason to hold back: the artifact can simply be overwritten
+with this file when someone wants the two to match. Completions are tracked
+on paper instead — staff send in the certificate the module generates.
