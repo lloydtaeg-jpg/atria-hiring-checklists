@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Move Safe — Client Handling for Home Care</title>
+<title>Move Safe</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%236E7444%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23FAF8F2%22%20stroke-width%3D%222.1%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%2010v12M23%2010v12%22%2F%3E%3Cpath%20d%3D%22M9%2014h14%22%2F%3E%3Ccircle%20cx%3D%229%22%20cy%3D%2224%22%20r%3D%221.6%22%2F%3E%3Ccircle%20cx%3D%2223%22%20cy%3D%2224%22%20r%3D%221.6%22%2F%3E%3Cpath%20d%3D%22M9%2010h3M20%2010h3%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -317,6 +318,35 @@ input[type=text]{border-width:1px;border-radius:6px;background:var(--card)}
 @media (max-width:420px){.rule p{padding-left:1rem}}
 .stops span.now{background:var(--olive)}
 </style>
+<style>
+/* ===== Module identity: shared Atria system, one accent per module ===== */
+:root{ --module:#6E7444; --module-on:#FAF8F2; }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --module:#A8AE70; } }
+:root[data-theme="dark"]{ --module:#A8AE70; }
+
+.brandbar{ background:var(--module); color:var(--module-on); }
+/* the module is the subject of the page; the company is the publisher */
+.brandbar .brand{ font-size:.95rem; font-weight:600; letter-spacing:.14em;
+  text-transform:uppercase; opacity:.82; }
+.brandbar .tagline{ font-size:.7rem; letter-spacing:.12em; text-transform:uppercase; opacity:.62; }
+.brandbar h1{ font-size:clamp(2.1rem,7vw,3.1rem); font-weight:700; line-height:1.04;
+  letter-spacing:-.015em; margin:.55rem 0 0; text-wrap:balance; }
+.brandbar p{ font-size:.95rem; opacity:.9; margin-top:.5rem; }
+.brandbar .logo-mark{ width:56px; height:56px; }
+@media(min-width:700px){ .brandbar .logo-mark{ width:62px; height:62px; } }
+.meta-bar .field b{ color:var(--module); }
+.stops span.now{ background:var(--module); }
+.stops span.done{ background:color-mix(in srgb, var(--module) 45%, transparent); }
+.eyebrow, h3.section, .idx-sec{ color:var(--module); }
+.modulestrip{ background:var(--card); border-bottom:1px solid var(--line); }
+.modulestrip-in{ max-width:720px; margin:0 auto; display:grid; grid-template-columns:repeat(3,1fr);
+  gap:14px; padding:18px max(16px,env(safe-area-inset-left,0px)); }
+.modulestrip figure{ margin:0; display:grid; justify-items:center; gap:7px; color:var(--module); }
+.modulestrip svg{ width:100%; max-width:94px; height:auto; }
+.modulestrip figcaption{ font-size:.72rem; letter-spacing:.06em; text-transform:uppercase;
+  font-weight:600; color:var(--muted); text-align:center; line-height:1.3; }
+@media (max-width:420px){ .modulestrip figcaption{ font-size:.63rem; letter-spacing:.03em; } }
+</style>
 </head>
 <body>
 <header class="brandbar">
@@ -335,6 +365,11 @@ input[type=text]{border-width:1px;border-radius:6px;background:var(--card)}
 </div></div>
 
 
+<div class="modulestrip"><div class="modulestrip-in">
+  <figure><svg viewBox="0 0 80 64" role="img" aria-label="A wheeled walker"><g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14v38M60 14v38"/><path d="M20 28h40"/><path d="M20 14h9M51 14h9"/><circle cx="20" cy="55" r="3.2"/><circle cx="60" cy="55" r="3.2"/><path d="M28 20h24"/></g></svg><figcaption>Walkers and equipment</figcaption></figure>
+  <figure><svg viewBox="0 0 80 64" role="img" aria-label="One person steadying another during a transfer"><g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="27" cy="14" r="6"/><path d="M27 20v18l-6 16M27 38l7 16"/><path d="M27 26h12"/><circle cx="57" cy="18" r="5.4"/><path d="M57 23v16l-5 14M57 39l5 14M57 28H45"/></g></svg><figcaption>Transfers and handling</figcaption></figure>
+  <figure><svg viewBox="0 0 80 64" role="img" aria-label="A person on the floor beside a chair"><g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 56h70"/><circle cx="16" cy="47" r="5.2"/><path d="M21 49h15"/><path d="M36 49l8-6M36 49l8 6"/><path d="M56 36h15M56 36v20M71 36v20M71 36V21"/></g></svg><figcaption>If a client falls</figcaption></figure>
+</div></div>
 <div class="route" id="route" aria-hidden="true">
   <div class="route-in">
     <div class="route-top"><strong id="stepName">Welcome</strong><span id="stepCount"></span></div>

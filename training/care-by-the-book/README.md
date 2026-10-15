@@ -47,6 +47,15 @@ The claude.ai artifact does **not** have this section. Either republish this
 file to it, or re-apply the four off-platform changes above after editing
 there, or the two will keep drifting apart.
 
+## Module identity
+
+Shares the Atria system with Move Safe but keeps the teal `--module` accent
+against Move Safe's olive, with its own SVG favicon and a `<title>` of just
+the module name. The module title is the largest element in the header and
+the company wordmark sits above it in smaller caps — the two were previously
+the other way round, which made the page read as generic Atria rather than as
+this module.
+
 ## Falls: who owns what
 
 This module owns the falls *response* — the two falls sections and their 13

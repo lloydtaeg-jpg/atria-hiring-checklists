@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Care by the Book: Atria Client Care Procedures</title>
+<title>Care by the Book</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%235A8282%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23FAF8F2%22%20stroke-width%3D%222.1%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M16%2010.5v13%22%2F%3E%3Cpath%20d%3D%22M16%2010.5C13.8%209%2011.4%208.6%208.5%208.6v12.8c2.9%200%205.3.4%207.5%201.9%22%2F%3E%3Cpath%20d%3D%22M16%2010.5c2.2-1.5%204.6-1.9%207.5-1.9v12.8c-2.9%200-5.3.4-7.5%201.9%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -325,6 +326,28 @@ input[type=text]{border-width:1px;border-radius:6px;background:var(--card)}
 .rule p{padding:0 1rem 1rem 3.85rem;margin:0;color:var(--muted);font-size:.95rem}
 @media (max-width:420px){.rule p{padding-left:1rem}}
 .stops span.now{background:var(--olive)}
+</style>
+<style>
+/* ===== Module identity: shared Atria system, one accent per module ===== */
+:root{ --module:#5A8282; --module-on:#FAF8F2; }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --module:#8FBDBD; } }
+:root[data-theme="dark"]{ --module:#8FBDBD; }
+
+.brandbar{ background:var(--module); color:var(--module-on); }
+/* the module is the subject of the page; the company is the publisher */
+.brandbar .brand{ font-size:.95rem; font-weight:600; letter-spacing:.14em;
+  text-transform:uppercase; opacity:.82; }
+.brandbar .tagline{ font-size:.7rem; letter-spacing:.12em; text-transform:uppercase; opacity:.62; }
+.brandbar h1{ font-size:clamp(2.1rem,7vw,3.1rem); font-weight:700; line-height:1.04;
+  letter-spacing:-.015em; margin:.55rem 0 0; text-wrap:balance; }
+.brandbar p{ font-size:.95rem; opacity:.9; margin-top:.5rem; }
+.brandbar .logo-mark{ width:56px; height:56px; }
+@media(min-width:700px){ .brandbar .logo-mark{ width:62px; height:62px; } }
+.meta-bar .field b{ color:var(--module); }
+.stops span.now{ background:var(--module); }
+.stops span.done{ background:color-mix(in srgb, var(--module) 45%, transparent); }
+.eyebrow, h3.section, .idx-sec{ color:var(--module); }
+
 </style>
 </head>
 <body>

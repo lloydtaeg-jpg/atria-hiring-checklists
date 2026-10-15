@@ -28,7 +28,15 @@ same 21/26 pass mark, same certificate. Only the shell changed.
 4. **Hero removed** — the old hero repeated the title now in the brandbar,
    and the amber hazard `stripe` clashed with the palette. Replaced with the
    same `intro` block Care by the Book uses.
-5. **Certificate branded** — the on-screen and downloaded certificates still
+5. **Module identity** — the rebrand made the two modules nearly
+   indistinguishable in a browser tab. Move Safe now carries a deeper olive
+   `--module` accent (drawn from the Atria palette's olive) against Care by
+   the Book's teal, its own SVG favicon, a short `<title>` of just the module
+   name, and a strip of three line illustrations under the header: walkers
+   and equipment, transfers and handling, if a client falls. The module title
+   is now the largest thing in the header; the company wordmark sits above it
+   as a smaller caps line.
+6. **Certificate branded** — the on-screen and downloaded certificates still
    used the old palette with no logo. Both now carry the Atria mark and the
    teal treatment, the same certificate Care by the Book issues.
 
