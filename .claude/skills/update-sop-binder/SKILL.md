@@ -61,6 +61,14 @@ A wording fix belongs in the doc.
    `curl -s -o /dev/null -w '%{http_code}' https://lloydtaeg-jpg.github.io/atria-hiring-checklists/sop-binder.html`
    Pages takes up to a few minutes; poll rather than assuming.
 
+## Branding
+
+The page shares the Atria identity with the directory and the hiring
+checklists: the logo from `tools/atria-logo.b64` in the topbar, Lora over
+Inter, and its own favicon — in the binder's brown palette rather than the
+directory's aegean. All of that lives in the build script's template, so a
+rebuild keeps it. If the logo ever changes, replace that one file.
+
 ## Local overrides
 
 `tools/sop-overrides/<number>.html` replaces one SOP's body with local
