@@ -321,6 +321,25 @@ input[type=text]{border-width:1px;border-radius:6px;background:var(--card)}
 <style>
 /* ===== Module identity: shared Atria system, one accent per module ===== */
 :root{ --module:#6E7444; --module-on:#FAF8F2; }
+/* Text carries the module's hue too, so the page reads as one colour
+   rather than teal writing inside an olive frame. Neutrals are olive-biased
+   rather than literal olive, to keep body text legible. */
+:root{
+  --ink:#343923; --muted:#56593D; --faint:#6F7349;
+  --brand:#6E7444; --brand-2:#878D56; --brand-ink:#5E6439;
+  --line:#DBDDCB; --line-soft:#EBECE0;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --ink:#E9ECDE; --muted:#B4B79B; --faint:#95987B;
+  --brand:#4F5430; --brand-2:#6E7444; --brand-ink:#BAC088;
+  --line:#3A3E29; --line-soft:#2E3121;
+}}
+:root[data-theme="dark"]{
+  --ink:#E9ECDE; --muted:#B4B79B; --faint:#95987B;
+  --brand:#4F5430; --brand-2:#6E7444; --brand-ink:#BAC088;
+  --line:#3A3E29; --line-soft:#2E3121;
+}
+
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --module:#A8AE70; } }
 :root[data-theme="dark"]{ --module:#A8AE70; }
 

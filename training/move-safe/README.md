@@ -35,7 +35,12 @@ same 21/26 pass mark, same certificate. Only the shell changed.
    name, and a strip of three line illustrations under the header: walkers
    and equipment, transfers and handling, if a client falls. The module title
    is now the largest thing in the header; the company wordmark sits above it
-   as a smaller caps line.
+   as a smaller caps line. The text tokens (`--ink`, `--muted`, `--faint`,
+   `--brand-ink`) are olive-biased too, so the page reads as one colour
+   rather than teal writing in an olive frame. They are olive-leaning
+   neutrals rather than literal olive, and every one clears WCAG AA on the
+   page background — body 11.5:1, headings 6.0:1, the small uppercase labels
+   4.8:1. Check the ratios if you change them.
 6. **Certificate branded** — the on-screen and downloaded certificates still
    used the old palette with no logo. Both now carry the Atria mark and the
    teal treatment, the same certificate Care by the Book issues.
