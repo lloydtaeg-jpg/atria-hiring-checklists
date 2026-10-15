@@ -40,7 +40,32 @@ a change to Care by the Book's does not reach this one.
 The folder is not linked, so the site id is required; `--site atria-move-safe`
 by name fails with "Error while running build".
 
+## Falls: who owns what
+
+Falls are split between the two modules deliberately:
+
+- **SOP 31 / Care by the Book** own the *response*: checking breathing, the
+  red flags, the 911 decision, reporting and monitoring.
+- **Move Safe** owns the *mechanics*: guiding a fall down, never lifting off
+  the floor, covering without rolling, coaching the floor-recovery sequence,
+  and why getting up outside the home is usually unsafe.
+
+The six response-procedure questions that used to end this quiz were replaced
+with six mechanical ones. Keep it that way: a question about what to look for
+or who to call belongs in Care by the Book, not here.
+
 ## Not synced
 
-The Claude artifact <https://claude.ai/artifact/4TH3mb7ErMjmw5Bxy75GFp> still
-has the old branding. Publish this file to it to bring them in line.
+The Claude artifact <https://claude.ai/artifact/4TH3mb7ErMjmw5Bxy75GFp> is
+**not** the same page as this one and must not be overwritten with it.
+
+That version declares the `user`, `db` and `downloads` capabilities and
+carries a "Staff completions" admin panel that records who has passed.
+Whoever made the public build stripped all of that out, so this file has no
+trace of it. Publishing this file to the artifact would delete the panel and
+every completion it tracks.
+
+To sync them properly, merge the rebrand and the falls split onto the
+*artifact's* source rather than this one, so the capability code survives —
+the way Care by the Book is handled, where one file serves both because its
+`claude.use()` calls were kept.

@@ -43,6 +43,17 @@ The claude.ai artifact does **not** have this section. Either republish this
 file to it, or re-apply the four off-platform changes above after editing
 there, or the two will keep drifting apart.
 
+## Falls: who owns what
+
+This module owns the falls *response* — the two falls sections and their 13
+questions cover what to look for, what counts as a red flag, and what to
+decide. The *mechanics* (guiding a fall, never lifting, the floor-recovery
+sequence) belong to Move Safe, and the authoritative procedure is SOP 31.
+
+A coaching-technique question was moved out to Move Safe for this reason,
+taking the check from 56 questions to 55 and the pass mark from 53 to 52 —
+still three wrong allowed.
+
 ## Limitation
 
 Results are **not** recorded centrally — `localStorage` is per-device and

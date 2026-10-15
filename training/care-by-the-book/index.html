@@ -341,7 +341,7 @@ input[type=text]{border-width:1px;border-radius:6px;background:var(--card)}
 <div class="meta-bar"><div class="meta-bar-in">
   <div class="field"><b>Covers:</b>Client care SOPs, including travel</div>
   <div class="field"><b>Time:</b>About 55 minutes</div>
-  <div class="field"><b>Pass mark:</b>53 of 56</div>
+  <div class="field"><b>Pass mark:</b>52 of 55</div>
 </div></div>
 
 <div class="route" id="route" aria-hidden="true">
@@ -360,14 +360,14 @@ input[type=text]{border-width:1px;border-radius:6px;background:var(--card)}
       <label class="field" for="staffName">Your full name</label>
       <input type="text" id="staffName" autocomplete="name" placeholder="As it should appear on your certificate">
     </div>
-    <p class="hint">The check has 56 questions and you need 53 to pass. Each section names the SOPs it covers so you can look up the full version, and you can retake the check as many times as you need.</p>
+    <p class="hint">The check has 55 questions and you need 52 to pass. Each section names the SOPs it covers so you can look up the full version, and you can retake the check as many times as you need.</p>
     <div id="priorRecord" class="note hidden"></div>
     <button class="btn" id="startBtn" disabled>Start the module</button>
   </div>
   <div class="panel" style="margin-top:24px">
     <h3>What's covered</h3>
     <ol class="toc" id="toc"></ol>
-    <p class="hint" style="margin:12px 0 0">Safe transfers have their own module, Move Safe. Take it before doing any transfers. The two falls sections here follow the Client Falls Response SOP.</p>
+    <p class="hint" style="margin:12px 0 0">These two falls sections are the response: what to look for and what to decide, following SOP 31. How to physically guide a fall, protect a client on the floor and coach them back up is in Move Safe — take that module too.</p>
   </div>
   <div id="adminPanel" class="panel hidden" style="margin-top:24px">
     <h3>Staff completions</h3>
@@ -380,8 +380,8 @@ input[type=text]{border-width:1px;border-radius:6px;background:var(--card)}
 
 <section class="step" data-name="The check" id="quizStep">
   <p class="eyebrow">Final check</p>
-  <h2>56 questions</h2>
-  <p>53 correct to pass. Pick the best answer for each. If you don't pass, the wrong answers are marked so you can review and try again.</p>
+  <h2>55 questions</h2>
+  <p>52 correct to pass. Pick the best answer for each. If you don't pass, the wrong answers are marked so you can review and try again.</p>
   <div id="quiz"></div>
   <button class="btn" id="gradeBtn" style="width:100%;margin-top:10px">Submit answers</button>
   <div id="result"></div>
@@ -400,7 +400,7 @@ input[type=text]{border-width:1px;border-radius:6px;background:var(--card)}
 (function(){
 const MODULE_VERSION = "1.2";
 const LOGO = document.querySelector(".logo-mark img").getAttribute("src");
-const PASS_MARK = 53;
+const PASS_MARK = 52;
 
 const SECTIONS = [
 {name:"Privacy and conduct", sops:"SOPs 9, 11, 41, 45, 48",
@@ -627,7 +627,6 @@ const QUIZQ = [
  {s:7,q:"A client felt dizzy and had chest pain just before he fell. He's not hurt and can get up himself. What do you do?",o:["Coach him up and carry on with the visit","Keep him still and call 911; the fall may be a heart or circulation problem","Give him water and wait 30 minutes","Mention it to the RN at the next visit"],a:1,e:"Chest pain, dizziness or fainting before a fall is a red flag."},
  {s:7,q:"You find a client on the floor. She doesn't know how long she's been there and she's cold and a bit confused. What now?",o:["Coach her up quickly to warm her","Keep her where she is, cover her warmly, and call 911","Give her a hot drink and recheck in an hour","Call family to come help lift her"],a:1,e:"Long or unknown time on the floor, with cold and confusion, is a red flag."},
  {s:7,q:"You're not sure whether something counts as a red flag. What does the SOP say?",o:["Treat it as one","Ignore it if the client feels fine","Let the client decide","Wait 30 minutes and look again"],a:0,e:"If unsure whether something is a red flag, treat it as one (Falls SOP)."},
- {s:7,q:"No red flags, and the client can get up with coaching. What's the right way?",o:["Lift under the arms with a co-worker","Coach them to roll onto their side, onto hands and knees, crawl to a sturdy chair, put one foot flat and push up to sit","Pull them up by the hands","Lift them from the floor with a gait belt"],a:1,e:"You steady the chair and guide with words. You never lift (Falls SOP, step 7)."},
  {s:7,q:"The client is now sitting in a chair after getting up from a fall. What next?",o:["Get them walking right away to test the leg","Rest at least 10 minutes, then recheck pain, dizziness, confusion and breathing","Leave, since they're up","Help them straight back to bed"],a:1,e:"Rest and recheck. Anything new means 911 (Falls SOP, step 7)."},
  /* Other emergencies */
  {s:8,q:"You find a client unresponsive and not breathing normally. There's no DNR Confirmation Form in the home. What do you do?",o:["Call family to ask their wishes","Call 911 and start CPR if trained","Call the office first","Wait for the RN to arrive"],a:1,e:"Without a valid DNR form, it's a full response (SOPs 10, 33, 34)."},
