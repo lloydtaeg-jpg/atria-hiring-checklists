@@ -286,71 +286,228 @@ function firstDate(s){
   return m?m[0]:'';
 }
 window.importRecord=function(){
-  var el=document.getElementById('importText'); var text=el?el.value:'';
-  if(!text.trim()){ alert('Paste the record text first.'); return; }
-  var T=text.replace(/\r/g,''); var filled=[];
+  var el=document.getElementById('importText');
+  var text=el?el.value:'';
+  if(!text.trim()){ alert('Upload a PDF or paste the record text first.'); return; }
+  var T=text.replace(/\r/g,'');
+  var filled=[];
 
-  var dg=between(T,/DIAGNOSES/i,[/Former smoker/i,/Allergies\s*:/i,/Care Providers/i]);
+  /* Every known heading. A section runs until the next heading of any kind,
+     so adding a section later cannot silently swallow the one before it. */
+  var HEADERS=[/CLIENT INFORMATION/i,/REASON FOR CARE/i,/DIAGNOSES/i,/ALLERGIES\s*:?/i,
+    /CARE PROVIDERS/i,/SURGICAL HX/i,/CURRENT MEDICATIONS/i,/IMMUNIZATIONS\s*:?/i,
+    /TESTING RESULTS/i,/FAMILY HISTORY/i,/SOCIAL HISTORY/i,/FUNCTIONAL STATUS/i,
+    /Former smoker/i,/\bPRN\b/i];
+  function atLineStart(re){ return new RegExp('^[\\s]*(?:' + re.source + ')', 'im'); }
+  function section(re){
+    var others=HEADERS.filter(function(h){ return h.source!==re.source; }).map(atLineStart);
+    return between(T, atLineStart(re), others);
+  }
+
+  /* ---- writing into the form ---- */
+  function labelSpans(label){
+    var out=[];
+    document.querySelectorAll('.fieldrow label').forEach(function(lb){
+      if(lb.textContent.trim().toLowerCase()!==label.toLowerCase()) return;
+      var sp=lb.nextElementSibling;
+      if(sp && sp.hasAttribute('contenteditable')) out.push(sp);
+    });
+    return out;
+  }
+  function setField(label, nth, value){
+    if(!value) return 0;
+    var a=labelSpans(label);
+    if(a.length<nth) return 0;
+    a[nth-1].textContent=value; return 1;
+  }
+  function setNotes(ph, value){
+    if(!value) return 0;
+    var e=document.querySelector('.notes[data-ph="'+ph+'"]');
+    if(!e) return 0;
+    e.textContent=value; return 1;
+  }
+  function tick(label){
+    var hit=0;
+    document.querySelectorAll('.consent-line').forEach(function(l){
+      var sp=l.querySelectorAll('span');
+      var txt=sp.length?sp[sp.length-1].textContent.trim().toLowerCase():'';
+      if(txt===label.trim().toLowerCase()){
+        var b=l.querySelector('.box'); if(b){ b.classList.add('checked'); hit=1; }
+      }
+    });
+    return hit;
+  }
+  /* "Key: value" out of a block */
+  function kv(block, key){
+    var re=new RegExp('^\\s*'+key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\s*:\\s*(.+)$','im');
+    var m=block.match(re);
+    return m?m[1].trim():'';
+  }
+  /* rows written "a | b | c"; returns [] when the block uses no pipes */
+  function pipeRows(block, ncols){
+    var merged=[];
+    lines(block).forEach(function(l){
+      if(l.indexOf('|')>-1) merged.push(l);
+      else if(merged.length) merged[merged.length-1]+=' '+l;   /* wrapped line */
+    });
+    return merged.map(function(l){
+      var p=l.split('|').map(function(x){ return x.trim(); });
+      while(p.length<ncols) p.push('');
+      return p.slice(0,ncols);
+    });
+  }
+
+  /* ---- client information ---- */
+  var ci=section(/CLIENT INFORMATION/i);
+  if(ci){
+    var n=0;
+    n+=setField('Full name:',1,kv(ci,'Name')||kv(ci,'Full name'));
+    n+=setField('Date of birth:',1,kv(ci,'DOB')||kv(ci,'Date of birth'));
+    n+=setField('Sex:',1,kv(ci,'Sex'));
+    n+=setField('Health card #:',1,kv(ci,'Health card')||kv(ci,'Health card #'));
+    n+=setField('Preferred language:',1,kv(ci,'Language')||kv(ci,'Preferred language'));
+    n+=setField('Address:',1,kv(ci,'Address'));
+    n+=setField('Phone:',1,kv(ci,'Phone'));
+    n+=setField('Alternate phone:',1,kv(ci,'Alternate phone'));
+    n+=setField('Family physician / NP:',1,kv(ci,'Family physician')||kv(ci,'Physician'));
+    n+=setField('Pharmacy:',1,kv(ci,'Pharmacy'));
+    /* "Emergency contact: name | relationship | phone" */
+    [['Emergency contact',1],['SDM',2],['Substitute decision-maker',2]].forEach(function(pair){
+      var v=kv(ci,pair[0]); if(!v) return;
+      var q=v.split('|').map(function(x){return x.trim();});
+      n+=setField('Name:',pair[1],q[0]||'');
+      n+=setField('Relationship:',pair[1],q[1]||'');
+      n+=setField('Phone:',pair[1]+1,q[2]||'');
+    });
+    if(n) filled.push('Client information ('+n+' fields)');
+  }
+
+  var rc=section(/REASON FOR CARE/i);
+  if(rc && setNotes('Describe the presenting concerns', lines(rc).join(' '))) filled.push('Reason for care');
+
+  /* ---- diagnoses: pipe rows, else the old comma-separated list ---- */
+  var dg=section(/DIAGNOSES/i);
   if(dg){
-    var items=dg.replace(/\n/g,' ').split(/,\s*/).map(function(x){return x.trim();}).filter(Boolean);
-    var rows=items.map(function(it){ return [it, 'Active', '']; });
+    var rows=pipeRows(dg,3);
+    if(!rows.length){
+      rows=dg.replace(/\n/g,' ').split(/,\s*/).map(function(x){return x.trim();})
+             .filter(Boolean).map(function(it){ return [it,'Active','']; });
+    }
     if(fillTable('Diagnoses / conditions', rows)) filled.push('Diagnoses ('+rows.length+')');
   }
 
-  var al=between(T,/Allergies\s*:/i,[/Care Providers/i,/Surgical/i]);
+  /* ---- allergies: many rows now, not one ---- */
+  var al=section(/ALLERGIES\s*:?/i);
   if(al){
-    var one=al.replace(/\n/g,' ').trim();
-    var sev=(one.match(/ANAPHYLAXIS|severe|moderate|mild/i)||[''])[0];
-    var allergen=sev?one.replace(new RegExp(sev+'\\s*$','i'),'').trim():one;
-    if(fillTable('Allergies', [[allergen, sev||'', /anaphyl/i.test(sev)?'Severe':sev]])) filled.push('Allergies');
+    var rows=pipeRows(al,3);
+    if(!rows.length){
+      var one=al.replace(/\n/g,' ').trim();
+      var sev=(one.match(/ANAPHYLAXIS|severe|moderate|mild/i)||[''])[0];
+      var allergen=sev?one.replace(new RegExp(sev+'\\s*$','i'),'').trim():one;
+      rows=[[allergen, sev||'', /anaphyl/i.test(sev)?'Severe':sev]];
+    }
+    if(fillTable('Allergies', rows)) filled.push('Allergies ('+rows.length+')');
   }
 
-  var cp=between(T,/Care Providers/i,[/Surgical/i]);
+  var cp=section(/CARE PROVIDERS/i);
   if(cp){
-    var rows=lines(cp).map(function(l){
-      var m=l.match(/^([^:]+):\s*(.+)$/); if(!m) return null;
-      var role=m[1].trim(); var rhs=m[2].trim(); var clinic=''; var name=rhs;
-      var cm=rhs.match(/\(([^)]*)\)\s*$/); if(cm){ clinic=cm[1].trim(); name=rhs.slice(0,cm.index).trim(); }
-      return [name, role, clinic];
-    }).filter(Boolean);
+    var rows=pipeRows(cp,3);
+    if(!rows.length){
+      rows=lines(cp).map(function(l){
+        var m=l.match(/^([^:]+):\s*(.+)$/); if(!m) return null;
+        var role=m[1].trim(), rhs=m[2].trim(), clinic='', name=rhs;
+        var cm=rhs.match(/\(([^)]*)\)\s*$/);
+        if(cm){ clinic=cm[1].trim(); name=rhs.slice(0,cm.index).trim(); }
+        return [name, role, clinic];
+      }).filter(Boolean);
+    }
     if(fillTable('Care team', rows)) filled.push('Care team ('+rows.length+')');
   }
 
-  var sx=between(T,/Surgical HX/i,[/Current Medications/i]);
+  var sx=section(/SURGICAL HX/i);
   if(sx){
-    var rows=lines(sx).map(function(l){ var d=firstDate(l); var proc=d?l.replace(d,'').replace(/[-@,]+\s*$/,'').trim():l; return [proc, d, '']; });
+    var rows=pipeRows(sx,3);
+    if(!rows.length){
+      rows=lines(sx).map(function(l){
+        var d=firstDate(l);
+        var proc=d?l.replace(d,'').replace(/[-@,]+\s*$/,'').trim():l;
+        return [proc, d, ''];
+      });
+    }
     if(fillTable('Procedures', rows)) filled.push('Surgical ('+rows.length+')');
   }
 
-  var md=between(T,/Current Medications/i,[/Immunizations\s*:/i,/\bPRN\b/i]);
+  var md=section(/CURRENT MEDICATIONS/i);
   if(md){
-    var rows=lines(md).map(function(l){
-      var m=l.match(/^(.+?)\s+([\d.]+\s*(?:mg|mcg|IU|g|%|puff|tab|units)[^\s]*(?:\/[\d.]+\s*\w+)?)\s*(.*)$/i);
-      if(m) return [m[1].trim(), m[2].trim(), m[3].trim(), ''];
-      return [l, '', '', ''];
-    });
+    var rows=pipeRows(md,4);
+    if(!rows.length){
+      rows=lines(md).map(function(l){
+        var m=l.match(/^(.+?)\s+([\d.]+\s*(?:mg|mcg|IU|g|%|puff|tab|units)[^\s]*(?:\/[\d.]+\s*\w+)?)\s*(.*)$/i);
+        if(m) return [m[1].trim(), m[2].trim(), m[3].trim(), ''];
+        return [l, '', '', ''];
+      });
+    }
     if(fillTable('Medications', rows)) filled.push('Medications ('+rows.length+')');
   }
 
-  var im=between(T,/Immunizations\s*:/i,[/\bPRN\b/i,/TESTING RESULTS/i]);
+  /* ---- immunizations: many rows now, not one ---- */
+  var im=section(/IMMUNIZATIONS\s*:?/i);
   if(im){
-    var one=im.replace(/\n/g,' ').trim(); var d=firstDate(one);
-    var name=d?one.replace(d,'').replace(/[-,\s]+$/,'').trim():one;
-    if(fillTable('Immunizations', [[name, d, '']])) filled.push('Immunizations');
+    var rows=pipeRows(im,3);
+    if(!rows.length){
+      rows=lines(im).map(function(l){
+        var d=firstDate(l);
+        var name=d?l.replace(d,'').replace(/[-,\s]+$/,'').trim():l;
+        return [name, d, ''];
+      }).filter(function(r){ return r[0]||r[1]; });
+    }
+    if(fillTable('Immunizations', rows)) filled.push('Immunizations ('+rows.length+')');
   }
 
-  /* TESTING RESULTS: one line per entry, "Test | Date | Findings".
-     Falls back to "<date>- <text>" when the pipes are absent. */
-  var tr=between(T,/TESTING RESULTS/i,[]);
+  var fh=section(/FAMILY HISTORY/i);
+  if(fh){
+    var rows=pipeRows(fh,3);
+    if(!rows.length){
+      rows=lines(fh).map(function(l){
+        var m=l.match(/^([^:|]+)[:|]\s*(.+)$/);
+        return m?[m[1].trim(), m[2].trim(), '']:[l,'',''];
+      });
+    }
+    if(fillTable('Family history', rows)) filled.push('Family history ('+rows.length+')');
+  }
+
+  /* ---- tests ---- */
+  var tr=section(/TESTING RESULTS/i);
   if(tr){
-    var rows=lines(tr).map(function(l){
-      var p=l.split('|');
-      if(p.length>=3) return [p[0].trim(), p[1].trim(), p.slice(2).join('|').trim()];
-      var d=firstDate(l);
-      var rest=d ? l.replace(d,'').replace(/^[\s\-\u2013\u2014]+/,'').trim() : l;
-      return [rest, d, ''];
-    }).filter(function(r){ return r[0]||r[1]; });
+    var rows=pipeRows(tr,3);
+    if(!rows.length){
+      rows=lines(tr).map(function(l){
+        var d=firstDate(l);
+        var rest=d ? l.replace(d,'').replace(/^[\s\-–—]+/,'').trim() : l;
+        return [rest, d, ''];
+      }).filter(function(r){ return r[0]||r[1]; });
+    }
     if(fillTable('Tests', rows)) filled.push('Tests ('+rows.length+')');
+  }
+
+  var sh=section(/SOCIAL HISTORY/i);
+  if(sh){
+    var n=0;
+    n+=setField('Living situation:',1,kv(sh,'Living situation'));
+    n+=setField('Occupation:',1,kv(sh,'Occupation'));
+    n+=setField('Smoking:',1,kv(sh,'Smoking'));
+    n+=setField('Alcohol:',1,kv(sh,'Alcohol'));
+    n+=setField('Substances:',1,kv(sh,'Substances'));
+    n+=setField('Mobility aids:',1,kv(sh,'Mobility aids'));
+    n+=setField('Diet:',1,kv(sh,'Diet'));
+    if(n) filled.push('Social history ('+n+' fields)');
+  }
+
+  var fs=section(/FUNCTIONAL STATUS/i);
+  if(fs){
+    var n=0;
+    lines(fs).forEach(function(l){ n+=tick(l.replace(/^[-•\s]+/,'')); });
+    if(n) filled.push('Functional status ('+n+' ticked)');
   }
 
   document.querySelectorAll('.card').forEach(function(c){c.classList.add('open');});
