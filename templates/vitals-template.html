@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Atria Private Care — Vital Signs Report Builder</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 <style>
@@ -370,6 +369,34 @@
     background: rgba(111,151,151,0.04);
   }
   .csv-drop input[type="file"] { display: none; }
+
+/* --- Atria PDF round-trip (tools/add_roundtrip.py) --- */
+.atria-import{background:#fff;border:1px solid rgba(44,62,62,.12);border-left:3px solid #5A8282;
+  border-radius:0 8px 8px 0;padding:.85rem 1rem;margin:0 0 1rem;font-family:inherit;
+  box-shadow:0 1px 3px rgba(44,62,62,.05)}
+.atria-import-title{font-weight:600;color:#5A8282;font-size:.95rem;margin-bottom:.2rem}
+.atria-import-hint{font-size:.76rem;color:#5a6a6a;margin-bottom:.55rem;line-height:1.5}
+.atria-drop{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;
+  border:1px dashed rgba(44,62,62,.28);border-radius:8px;padding:.6rem .7rem}
+.atria-drop.over{border-color:#5A8282;background:rgba(0,0,0,.02)}
+.atria-btn{font:inherit;font-size:.78rem;font-weight:600;color:#fff;background:#5A8282;border:none;
+  border-radius:7px;padding:.4rem .8rem;cursor:pointer}
+.atria-btn:hover{filter:brightness(.93)}
+.atria-drop-hint{font-size:.76rem;color:#6b7a7a}
+.atria-status{font-size:.76rem;margin-top:.45rem;line-height:1.5;color:#5a6a6a}
+.atria-status.ok{color:#3f7a4f}
+.atria-status.warn{color:#9a5a2a}
+.atria-data{display:none}
+@media print{
+  .atria-import{display:none!important}
+  .atria-data{display:block;break-before:page;page-break-before:always;margin-top:14px;
+    padding-top:8px;border-top:1px solid #ccc;font-family:Helvetica,Arial,sans-serif;
+    font-size:5.5pt;line-height:1.22;color:#777}
+  .atria-data h4{font-family:Helvetica,Arial,sans-serif;font-size:7pt;font-weight:700;
+    margin:0 0 4px;color:#555}
+  .atria-data .adl{white-space:normal;overflow-wrap:anywhere}
+  .atria-data .adl-mark{font-weight:700}
+}
 </style>
 </head>
 <body>
@@ -388,6 +415,17 @@
 </div>
 
 <div class="container">
+<div class="atria-import no-print" id="atriaImport">
+  <div class="atria-import-title">Fill this form from a saved PDF</div>
+  <div class="atria-import-hint">Upload a PDF this template produced and every field comes back. The file is read in your browser and is never uploaded anywhere.</div>
+  <div class="atria-drop" id="atriaDrop">
+    <input type="file" id="atriaFile" accept="application/pdf,.pdf" hidden />
+    <button type="button" class="atria-btn" id="atriaPick">Choose PDF</button>
+    <span class="atria-drop-hint">or drop it here</span>
+  </div>
+  <div class="atria-status" id="atriaStatus"></div>
+</div>
+
 
   <div class="meta-row">
     <div>
@@ -1008,12 +1046,35 @@ function downloadJSON(data, filename) {
   URL.revokeObjectURL(url);
 }
 
-function exportForEditing() {
+/* --- the form's answers, shared by the JSON export and the PDF --- */
+function atriaVitalsState() {
   var meta = {};
   document.querySelectorAll('.meta-row [contenteditable]').forEach(function(el, i) {
     meta['m' + i] = el.textContent;
   });
-  var data = { type: 'whtalife-vitals', rows: rows, meta: meta };
+  return { type: 'whtalife-vitals', rows: rows, meta: meta };
+}
+function atriaVitalsApply(data) {
+  rows = data.rows || [];
+  var n = rows.length;
+  if (data.meta) {
+    var fields = document.querySelectorAll('.meta-row [contenteditable]');
+    Object.keys(data.meta).forEach(function(k) {
+      var idx = parseInt(k.substr(1), 10);
+      if (fields[idx]) { fields[idx].textContent = data.meta[k]; if (data.meta[k]) n++; }
+    });
+  }
+  renderTable();
+  renderAll();
+  autoSave();
+  return n;
+}
+window.atriaCollect = atriaVitalsState;
+window.atriaApply = atriaVitalsApply;
+
+function exportForEditing() {
+  var data = atriaVitalsState();
+  var meta = data.meta;
   var name = (meta.m0 || 'Vitals').replace(/[^a-z0-9]+/gi, '_');
   downloadJSON(data, 'Vitals_' + name + '.json');
   alert('Exported ' + rows.length + ' readings. Upload this .json file to the template to edit later.');
@@ -1129,17 +1190,7 @@ function readCsvFile(file, handler) {
       try {
         var data = JSON.parse(e.target.result);
         if (data.type === 'whtalife-vitals' || (data.rows && Array.isArray(data.rows))) {
-          rows = data.rows || [];
-          if (data.meta) {
-            var fields = document.querySelectorAll('.meta-row [contenteditable]');
-            Object.keys(data.meta).forEach(function(k) {
-              var idx = parseInt(k.substr(1), 10);
-              if (fields[idx]) fields[idx].textContent = data.meta[k];
-            });
-          }
-          renderTable();
-          renderAll();
-          autoSave();
+          atriaVitalsApply(data);
           alert('JSON data imported: ' + rows.length + ' reading' + (rows.length !== 1 ? 's' : '') + ' restored.');
         } else {
           alert('This JSON file does not appear to be an Atria Private Care vitals export.');
@@ -1246,5 +1297,238 @@ function importVitals(text) {
 setupCsvDrop(document.getElementById('csvDropVitals'), document.getElementById('csvFileVitals'), importVitals);
 </script>
 
+<div class="atria-data" id="atriaDataWrap"><h4>Saved answers &mdash; upload this PDF to the template to bring these fields back.</h4><div id="atriaData"></div></div>
+<!-- atria-roundtrip:start -->
+<script>
+/* Atria PDF round-trip, shared by every fillable template.
+   The printed PDF carries the form's own answers as text, so uploading that
+   same PDF back into the template restores every field.
+
+   A template supplies two hooks:
+     window.atriaCollect()      -> a plain object holding the form's answers
+     window.atriaApply(obj)     -> writes that object back into the form
+   Templates with no state model of their own use atriaGenericCollect/Apply.
+
+   Source of truth: tools/pdf-roundtrip.js. Injected inline by
+   tools/add_roundtrip.py; edit it there and re-run, never in the template. */
+(function(){
+  var MARK='ATRIA-DATA-V1', END='ATRIA-DATA-END', WIDTH=96;
+
+  function enc(s){ var b=new TextEncoder().encode(s), o='';
+    for(var i=0;i<b.length;i++){ o+=String.fromCharCode(b[i]); } return btoa(o); }
+  function dec(s){ var b=atob(s), a=new Uint8Array(b.length);
+    for(var i=0;i<b.length;i++){ a[i]=b.charCodeAt(i); } return new TextDecoder().decode(a); }
+  var SKIP='.import-panel,.atria-import,.import-wrap,[data-atria-skip]';
+  function list(root,sel){
+    /* the upload panels are part of the page, not the form */
+    return Array.prototype.slice.call((root||document).querySelectorAll(sel))
+      .filter(function(el){ return !el.closest(SKIP); });
+  }
+
+  /* ---------- the block that rides along in the PDF ---------- */
+  function build(){
+    var el=document.getElementById('atriaData');
+    if(!el || typeof window.atriaCollect!=='function'){ return; }
+    el.textContent='';
+    var payload;
+    try{ payload=enc(JSON.stringify(window.atriaCollect())); }
+    catch(e){ return; }
+    function ln(text, cls){
+      var d=document.createElement('div'); d.className=cls||'adl';
+      d.textContent=text; el.appendChild(d);
+    }
+    ln(MARK,'adl adl-mark');
+    /* Base64 only, and each line is framed with ~, so a browser's own print
+       header or page number landing on these pages cannot be read as payload.
+       One element per line: a single wrapped paragraph gets reflowed on print
+       and the lines run together. */
+    for(var i=0;i<payload.length;i+=WIDTH){ ln('~'+payload.substr(i,WIDTH)+'~'); }
+    ln(END,'adl adl-mark');
+  }
+  window.atriaBuildData=build;
+  window.addEventListener('beforeprint', build);
+
+  window.atriaReadData=function(text){
+    var a=text.indexOf(MARK); if(a<0){ return null; }
+    var b=text.indexOf(END,a); if(b<0){ b=text.length; }
+    var seg=text.slice(a+MARK.length,b), out='', re=/~([A-Za-z0-9+\/=\s]+?)~/g, m;
+    while((m=re.exec(seg))){ out+=m[1].replace(/\s+/g,''); }
+    if(!out){ return null; }
+    try{ return JSON.parse(dec(out)); }catch(e){ return null; }
+  };
+
+  /* ---------- reading a PDF ---------- */
+  function itemsToText(items){
+    var lines={}, order=[];
+    items.forEach(function(it){
+      if(!it.str) return;
+      var y=Math.round(it.transform[5]);
+      if(!lines[y]){ lines[y]=[]; order.push(y); }
+      lines[y].push({x:it.transform[4], w:it.width||0, h:it.height||0, s:it.str});
+    });
+    order.sort(function(a,b){ return b-a; });
+    return order.map(function(y){
+      var parts=lines[y].sort(function(a,b){ return a.x-b.x; }), line='', prev=null;
+      parts.forEach(function(p){
+        if(prev){
+          /* PDFs carry their own space items; adding one between every pair
+             doubles them and splits hyphenated words. */
+          var gap=p.x-(prev.x+prev.w);
+          if(gap > Math.max(1,(p.h||prev.h||10)*0.22) && !/\s$/.test(line) && !/^\s/.test(p.s)){ line+=' '; }
+        }
+        line+=p.s; prev=p;
+      });
+      return line.replace(/[ \t]+/g,' ').trim();
+    }).filter(Boolean).join('\n');
+  }
+
+  var V='3.11.174', CDN='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/'+V+'/', pending=null;
+  function script(src){
+    return new Promise(function(res,rej){
+      var sc=document.createElement('script'); sc.src=src;
+      sc.onload=function(){ res(); };
+      sc.onerror=function(){ rej(new Error('Could not download the PDF reader. Check your connection and try again.')); };
+      document.head.appendChild(sc);
+    });
+  }
+  function ensureLib(){
+    /* PDF.js normally starts a Worker from the CDN, and a Worker cannot be
+       created from another origin: that path hangs for ever instead of
+       failing. Loading the worker file as a page script lets it parse on this
+       thread instead, which costs a brief pause and always works. */
+    if(window.pdfjsLib && window.pdfjsWorker){ return Promise.resolve(window.pdfjsLib); }
+    if(pending){ return pending; }
+    var first=window.pdfjsLib ? Promise.resolve() : script(CDN+'pdf.min.js');
+    pending=first.then(function(){
+      return window.pdfjsWorker ? null : script(CDN+'pdf.worker.min.js');
+    }).then(function(){
+      if(!window.pdfjsLib){ throw new Error('The PDF reader did not load.'); }
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc=CDN+'pdf.worker.min.js';
+      return window.pdfjsLib;
+    });
+    return pending;
+  }
+
+  window.atriaPdfText=function(file){
+    return ensureLib().then(function(lib){
+      return file.arrayBuffer().then(function(buf){
+        return lib.getDocument({data:buf, disableWorker:true}).promise;
+      });
+    }).then(function(pdf){
+      var out=[], chain=Promise.resolve();
+      for(var n=1;n<=pdf.numPages;n++){
+        (function(page){
+          chain=chain.then(function(){
+            return pdf.getPage(page)
+              .then(function(pg){ return pg.getTextContent(); })
+              .then(function(tc){ out.push(itemsToText(tc.items)); });
+          });
+        })(n);
+      }
+      return chain.then(function(){ return out.join('\n'); });
+    });
+  };
+
+  /* ---------- a generic form, for templates with no state model ---------- */
+  function ceText(node){
+    var parts=[];
+    (function walk(n){
+      for(var i=0;i<n.childNodes.length;i++){
+        var c=n.childNodes[i];
+        if(c.nodeType===3){ parts.push(c.nodeValue); continue; }
+        if(c.nodeType!==1) continue;
+        if(c.tagName==='BR'){ parts.push('\n'); continue; }
+        if(/^(DIV|P|LI)$/.test(c.tagName) && parts.length){ parts.push('\n'); }
+        walk(c);
+      }
+    })(node);
+    return parts.join('').replace(/ /g,' ').replace(/\n{3,}/g,'\n\n').trim();
+  }
+  function setCe(node, text){
+    node.textContent='';
+    String(text==null?'':text).split('\n').forEach(function(part,i){
+      if(i){ node.appendChild(document.createElement('br')); }
+      node.appendChild(document.createTextNode(part));
+    });
+  }
+  var TEXTIN='input[type="text"],input[type="date"],input[type="number"],input[type="tel"],input[type="email"],input:not([type])';
+
+  window.atriaGenericCollect=function(){
+    return {
+      t:'atria-form', v:1, id:window.atriaFormId||document.title,
+      ce:list(document,'[contenteditable]').map(ceText),
+      inp:list(document,TEXTIN).map(function(e){ return e.value; }),
+      ta:list(document,'textarea').map(function(e){ return e.value; }),
+      cb:list(document,'input[type="checkbox"]').map(function(e){ return e.checked?1:0; }),
+      bx:list(document,'.box').map(function(e){ return e.classList.contains('checked')?1:0; })
+    };
+  };
+  window.atriaGenericApply=function(d){
+    var n=0;
+    function pour(nodes, vals, set){
+      if(!vals) return;
+      nodes.forEach(function(el,i){ if(i<vals.length){ set(el,vals[i]); if(vals[i]) n++; } });
+    }
+    pour(list(document,'[contenteditable]'), d.ce, setCe);
+    pour(list(document,TEXTIN), d.inp, function(e,v){ e.value=v==null?'':v; });
+    pour(list(document,'textarea'), d.ta, function(e,v){ e.value=v==null?'':v; });
+    pour(list(document,'input[type="checkbox"]'), d.cb, function(e,v){ e.checked=!!v; });
+    pour(list(document,'.box'), d.bx, function(e,v){ e.classList.toggle('checked', !!v); });
+    return n;
+  };
+
+  /* ---------- the upload panel ---------- */
+  window.atriaMountImport=function(){
+    var pick=document.getElementById('atriaPick'),
+        file=document.getElementById('atriaFile'),
+        drop=document.getElementById('atriaDrop'),
+        stat=document.getElementById('atriaStatus');
+    if(!pick||!file||!drop){ return; }
+    function say(msg,kind){
+      if(!stat) return;
+      stat.textContent=msg||'';
+      stat.className='atria-status'+(kind?' '+kind:'');
+    }
+    function take(files){
+      var f=Array.prototype.slice.call(files).filter(function(x){
+        return /\.pdf$/i.test(x.name)||x.type==='application/pdf'; })[0];
+      if(!f){ say('Choose the PDF this template saved.','warn'); return; }
+      say('Reading '+f.name+'…');
+      window.atriaPdfText(f).then(function(text){
+        if(!text || !text.replace(/\s/g,'')){
+          say('That PDF has no text in it — it is a scan or a photo. Save the form again with Download / Save as PDF, and upload that file.','warn');
+          return;
+        }
+        var data=window.atriaReadData(text);
+        if(!data){
+          say('That PDF has text, but none of this form’s saved answers. Upload a PDF that this template produced.','warn');
+          return;
+        }
+        var filled=window.atriaApply(data);
+        say('Restored '+filled+' filled field'+(filled===1?'':'s')+' from '+f.name+'. Check each section before saving.','ok');
+      }).catch(function(err){
+        say(String(err&&err.message||err),'warn');
+      });
+    }
+    pick.addEventListener('click', function(){ file.click(); });
+    file.addEventListener('change', function(){ if(file.files.length){ take(file.files); } file.value=''; });
+    drop.addEventListener('dragover', function(e){ e.preventDefault(); drop.classList.add('over'); });
+    drop.addEventListener('dragleave', function(){ drop.classList.remove('over'); });
+    drop.addEventListener('drop', function(e){
+      e.preventDefault(); drop.classList.remove('over');
+      if(e.dataTransfer.files.length){ take(e.dataTransfer.files); }
+    });
+  };
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', function(){ window.atriaMountImport(); });
+  } else { window.atriaMountImport(); }
+})();
+
+</script>
+<script>
+/* atriaCollect and atriaApply are defined by this template's own
+   state code, further up the page. */
+</script>
+<!-- atria-roundtrip:end -->
 </body>
 </html>
