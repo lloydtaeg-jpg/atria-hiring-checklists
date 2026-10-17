@@ -94,6 +94,16 @@ ul.check li:before{content:'';top:.45rem;width:9px;height:9px;border-radius:2px;
 .goal{position:relative;}.del-btn{background:transparent;border:none;color:var(--text-light);cursor:pointer;font-size:1rem;line-height:1;padding:.1rem .35rem;border-radius:4px;}.del-btn:hover{color:#b04a4a;background:rgba(176,74,74,.09);}.goal-del{position:absolute;top:.45rem;right:.45rem;}.qtable th.delcol{border:none;background:transparent;width:26px;padding:0;}.qtable td.delcell{border:none;text-align:center;width:26px;padding:.15rem;}@media print{.del-btn,.qtable td.delcell,.qtable th.delcol{display:none;}}
 
 .import-panel{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--aegean);border-radius:0 8px 8px 0;padding:.9rem 1rem;margin-bottom:1rem;}.import-title{font-family:'Lora',serif;font-weight:600;color:var(--aegean-dark);font-size:.95rem;margin-bottom:.2rem;}.import-hint{font-size:.76rem;color:var(--text-mid);margin-bottom:.5rem;line-height:1.5;}.import-panel textarea{width:100%;min-height:110px;border:1px solid var(--border);border-radius:6px;padding:.5rem;font-family:'Inter',sans-serif;font-size:.8rem;color:var(--text);resize:vertical;box-sizing:border-box;}.import-panel .btns{margin-top:.5rem;display:flex;gap:.5rem;}@media print{.import-panel{display:none;}}
+
+.pdfdrop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px;padding:12px 14px;
+  border:1px dashed var(--border,#C8D8D8);border-radius:10px;background:rgba(255,255,255,.5);
+  transition:border-color .15s,background .15s}
+.pdfdrop.over{border-color:var(--aegean-dark,#5A8282);border-style:solid;background:rgba(90,130,130,.08)}
+.pdfdrop-hint{font-size:.8rem;color:var(--text-light,#7A9494)}
+.pdfstatus{flex:1 1 100%;font-size:.8rem;color:var(--text-mid,#4A6060);min-height:1.1em}
+.pdfstatus.err{color:#8A4A4A}
+.pdfstatus.ok{color:#4A7A4A}
+@media print{.pdfdrop{display:none}}
 </style></head>
 <body>
 <div class="doc">
@@ -105,7 +115,7 @@ ul.check li:before{content:'';top:.45rem;width:9px;height:9px;border-radius:2px;
   <p>A record of the client’s medical background, medications, allergies and care details.</p>
 </div>
 <div class="cards">
-<div class="import-panel no-print"><div class="import-title">Auto-fill from a record</div><div class="import-hint">Paste the text of a medical history document below and click <b>Auto-fill</b>. Nothing leaves your browser &mdash; review and adjust the filled fields afterwards.</div><textarea id="importText" placeholder="Paste record text here…"></textarea><div class="btns"><button type="button" class="add-btn" onclick="importRecord()">Auto-fill</button><button type="button" class="add-btn" onclick="document.getElementById('importText').value='';">Clear</button></div></div>
+<div class="import-panel no-print"><div class="import-title">Auto-fill from a record</div><div class="import-hint">Upload a PDF of a medical record, or paste its text below, then click <b>Auto-fill</b>. The file is read in your browser and is never uploaded anywhere &mdash; review and adjust the filled fields afterwards.</div><div class="pdfdrop" id="pdfDrop"><input type="file" id="pdfFile" accept="application/pdf,.pdf" multiple hidden><button type="button" class="add-btn" id="pdfPick">Choose PDF…</button><span class="pdfdrop-hint">or drag a PDF here</span><div class="pdfstatus" id="pdfStatus" role="status"></div></div><textarea id="importText" placeholder="Paste record text here, or upload a PDF above…"></textarea><div class="btns"><button type="button" class="add-btn" onclick="importRecord()">Auto-fill</button><button type="button" class="add-btn" onclick="document.getElementById('importText').value='';">Clear</button></div></div>
 <div class="intro">A summary of the client’s medical history for care planning. Editable fields can be filled in on screen, checkboxes ticked, and rows added or removed as needed; click a section heading to collapse it. Use <b>Save as PDF</b> when complete.</div>
   <div class="card open">
   <div class="card-hd" onclick="this.parentNode.classList.toggle('open')">
@@ -325,5 +335,136 @@ window.importRecord=function(){
 };
 })();
 
+</script>
+
+<script>
+/* PDF upload -> text -> the existing importRecord(). PDF.js is fetched only
+   when a file is actually chosen, and the document itself never leaves the
+   browser. */
+(function(){
+  var V='3.11.174';
+  var LIB='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/'+V+'/pdf.min.js';
+  var WORKER='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/'+V+'/pdf.worker.min.js';
+  var pending=null;
+  var drop=document.getElementById('pdfDrop');
+  var input=document.getElementById('pdfFile');
+  var pick=document.getElementById('pdfPick');
+  var statusEl=document.getElementById('pdfStatus');
+  var textEl=document.getElementById('importText');
+  if(!drop||!input||!textEl) return;
+
+  function say(msg,kind){ statusEl.textContent=msg||''; statusEl.className='pdfstatus'+(kind?' '+kind:''); }
+
+  function loadLib(){
+    if(window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    if(pending) return pending;
+    pending=new Promise(function(res,rej){
+      var sc=document.createElement('script');
+      sc.src=LIB;
+      sc.onload=function(){
+        if(window.pdfjsLib){ window.pdfjsLib.GlobalWorkerOptions.workerSrc=WORKER; res(window.pdfjsLib); }
+        else rej(new Error('The PDF reader did not load.'));
+      };
+      sc.onerror=function(){ rej(new Error('Could not download the PDF reader. Check your connection and try again.')); };
+      document.head.appendChild(sc);
+    });
+    return pending;
+  }
+
+  /* Rebuild lines from item positions: the importer looks for headings on
+     their own line, which a plain space-join destroys. */
+  function itemsToText(items){
+    var lines={}, order=[];
+    items.forEach(function(it){
+      if(!it.str) return;
+      var y=Math.round(it.transform[5]);
+      if(!lines[y]){ lines[y]=[]; order.push(y); }
+      lines[y].push([it.transform[4], it.str]);
+    });
+    order.sort(function(a,b){ return b-a; });
+    return order.map(function(y){
+      return lines[y].sort(function(a,b){ return a[0]-b[0]; })
+                     .map(function(p){ return p[1]; }).join(' ').replace(/\s+/g,' ').trim();
+    }).filter(Boolean).join('\n');
+  }
+
+  /* If the PDF engine cannot start, fail with a message instead of a
+     spinner that never resolves. */
+  function withTimeout(promise, ms, msg){
+    return new Promise(function(res, rej){
+      var done=false;
+      var t=setTimeout(function(){ if(!done){ done=true; rej(new Error(msg)); } }, ms);
+      promise.then(function(v){ if(!done){ done=true; clearTimeout(t); res(v); } },
+                   function(e){ if(!done){ done=true; clearTimeout(t); rej(e); } });
+    });
+  }
+
+  function readOne(file, lib){
+    return file.arrayBuffer().then(function(buf){
+      return withTimeout(lib.getDocument({data:buf}).promise, 45000,
+        'The PDF reader did not respond. Try again, or paste the text below instead.');
+    }).then(function(pdf){
+      var out=[], chain=Promise.resolve();
+      for(var n=1;n<=pdf.numPages;n++){
+        (function(page){
+          chain=chain.then(function(){
+            say('Reading '+file.name+' — page '+page+' of '+pdf.numPages+'…');
+            return pdf.getPage(page).then(function(pg){ return pg.getTextContent(); })
+                      .then(function(tc){ out.push(itemsToText(tc.items)); });
+          });
+        })(n);
+      }
+      return chain.then(function(){ return out.join('\n'); });
+    });
+  }
+
+  function handle(files){
+    files=Array.prototype.slice.call(files).filter(function(f){
+      return /\.pdf$/i.test(f.name) || f.type==='application/pdf';
+    });
+    if(!files.length){ say('That is not a PDF. Choose a PDF file, or paste the text below.','err'); return; }
+    say('Loading the PDF reader…');
+    loadLib().then(function(lib){
+      var texts=[], chain=Promise.resolve();
+      files.forEach(function(f){
+        chain=chain.then(function(){
+          return readOne(f,lib).then(function(t){ texts.push(t); }, function(e){
+            var msg=(e&&e.name==='PasswordException')
+              ? file_pw(f) : f.name+' could not be read ('+((e&&e.message)||'unknown error')+').';
+            texts.push('');
+            say(msg,'err');
+          });
+        });
+      });
+      return chain.then(function(){
+        var all=texts.join('\n\n').trim();
+        if(!all){
+          say('No text found. This PDF is probably a scan or a photo, which has no text layer — '
+             +'export a text-based PDF from the source system, or paste the text below.','err');
+          return;
+        }
+        textEl.value=all;
+        say('Read '+files.length+' file'+(files.length>1?'s':'')+' — '+all.length.toLocaleString()
+           +' characters. Filling the sections…','ok');
+        if(typeof window.importRecord==='function') window.importRecord();
+        say('Done. Check the text below against the filled sections before you rely on them.','ok');
+      });
+    }).catch(function(e){ say((e&&e.message)||'Something went wrong reading the PDF.','err'); });
+  }
+
+  function file_pw(f){ return f.name+' is password-protected. Remove the password, or paste the text below.'; }
+
+  pick.addEventListener('click', function(){ input.click(); });
+  input.addEventListener('change', function(){ if(input.files.length) handle(input.files); input.value=''; });
+  ['dragenter','dragover'].forEach(function(ev){
+    drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('over'); });
+  });
+  ['dragleave','drop'].forEach(function(ev){
+    drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove('over'); });
+  });
+  drop.addEventListener('drop', function(e){
+    if(e.dataTransfer && e.dataTransfer.files.length) handle(e.dataTransfer.files);
+  });
+})();
 </script>
 </body></html>
