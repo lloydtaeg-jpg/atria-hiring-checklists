@@ -415,22 +415,28 @@ window.importRecord=function(){
                      .map(function(p){ return p[1]; }).join(' ').replace(/\s+/g,' ').trim();
     }).filter(Boolean).join('\n');
   }
+  var diag=[];
   function readOne(file, lib){
     return file.arrayBuffer().then(function(buf){
       return withTimeout(lib.getDocument({data:buf, disableWorker:true}).promise, 60000,
         'The PDF reader did not respond. Try again, or paste the text below instead.');
     }).then(function(pdf){
-      var out=[], chain=Promise.resolve();
+      var out=[], items=0, chain=Promise.resolve();
+      diag.push(file.name+': opened, '+pdf.numPages+' page'+(pdf.numPages>1?'s':''));
       for(var n=1;n<=pdf.numPages;n++){
         (function(page){
           chain=chain.then(function(){
             say('Reading '+file.name+' \u2014 page '+page+' of '+pdf.numPages+'\u2026');
             return pdf.getPage(page).then(function(pg){ return pg.getTextContent(); })
-                      .then(function(tc){ out.push(itemsToText(tc.items)); });
+                      .then(function(tc){ items+=tc.items.length; out.push(itemsToText(tc.items)); });
           });
         })(n);
       }
-      return chain.then(function(){ return out.join('\n'); });
+      return chain.then(function(){
+        var t=out.join('\n');
+        diag.push(file.name+': '+items+' text items, '+t.length+' characters');
+        return t;
+      });
     });
   }
 
@@ -439,6 +445,7 @@ window.importRecord=function(){
       return /\.pdf$/i.test(f.name) || f.type==='application/pdf';
     });
     if(!files.length){ say('That is not a PDF. Choose a PDF file, or paste the text below.','err'); return; }
+    diag=[];
     say('Loading the PDF reader\u2026');
     loadLib().then(function(lib){
       var texts=[], problems=[], chain=Promise.resolve();
@@ -456,9 +463,10 @@ window.importRecord=function(){
       return chain.then(function(){
         var all=texts.join('\n\n').trim();
         if(!all){
-          say(problems.length ? problems.join(' ')
-            : 'No text found. This PDF has no text layer, which usually means it is a scan or a '
-             +'photo \u2014 export a text-based PDF from the source system, or paste the text below.','err');
+          say((problems.length ? problems.join(' ')
+            : 'No text could be read. If this says it opened pages but found 0 text items, the '
+             +'PDF has no text layer (a scan or photo). Otherwise send this line to Taegan.')
+             + (diag.length ? '  [' + diag.join('; ') + ']' : '  [no pages were opened]'),'err');
           return;
         }
         textEl.value=all;
