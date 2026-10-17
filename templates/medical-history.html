@@ -343,6 +343,36 @@ window.importRecord=function(){
     var m=block.match(re);
     return m?m[1].trim():'';
   }
+  /* ---- dates, so the newest sits at the top ----
+     Records mix "06/09/26", "10/23", "/07", "2007" and "?". Anything that
+     cannot be read sorts to the bottom rather than to 1970. */
+  function yr(y){ y=+y; if(y<100) y += (y<=31 ? 2000 : 1900); return y; }
+  function ymd(y,mo,d){ return yr(y)*10000 + (+mo||0)*100 + (+d||0); }
+  var MON={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+  function dateKey(v){
+    var t=String(v==null?'':v).trim();
+    if(!t) return -1;
+    var m;
+    if((m=t.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/))) return ymd(m[3],m[1],m[2]);
+    if((m=t.match(/([A-Za-z]{3,})\.?\s+(\d{4})/))){
+      var mo=MON[m[1].slice(0,3).toLowerCase()];
+      if(mo) return ymd(m[2],mo,0);
+    }
+    if((m=t.match(/(\d{1,2})\/(\d{2,4})/))){
+      var a=+m[1];
+      return (a>=1&&a<=12) ? ymd(m[2],a,0) : ymd(m[2],0,0);   /* "18/25": year only */
+    }
+    if((m=t.match(/\/(\d{2,4})/))) return ymd(m[1],0,0);
+    if((m=t.match(/\b(?:19|20)\d{2}\b/))) return ymd(m[0],0,0);
+    if((m=t.match(/\b\d{2}\b/))) return ymd(m[0],0,0);
+    return -1;
+  }
+  function newestFirst(rows, col){
+    return rows.map(function(r,i){ return {r:r,i:i,k:dateKey(r[col])}; })
+      .sort(function(a,b){ return b.k-a.k || a.i-b.i; })   /* stable within a tie */
+      .map(function(x){ return x.r; });
+  }
+
   /* rows written "a | b | c"; returns [] when the block uses no pipes */
   function pipeRows(block, ncols){
     var merged=[];
@@ -434,6 +464,7 @@ window.importRecord=function(){
         return [proc, d, ''];
       });
     }
+    rows=newestFirst(rows, 1);
     if(fillTable('Procedures', rows)) filled.push('Surgical ('+rows.length+')');
   }
 
@@ -461,6 +492,7 @@ window.importRecord=function(){
         return [name, d, ''];
       }).filter(function(r){ return r[0]||r[1]; });
     }
+    rows=newestFirst(rows, 1);
     if(fillTable('Immunizations', rows)) filled.push('Immunizations ('+rows.length+')');
   }
 
@@ -487,6 +519,7 @@ window.importRecord=function(){
         return [rest, d, ''];
       }).filter(function(r){ return r[0]||r[1]; });
     }
+    rows=newestFirst(rows, 1);
     if(fillTable('Tests', rows)) filled.push('Tests ('+rows.length+')');
   }
 
