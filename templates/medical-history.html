@@ -104,6 +104,14 @@ ul.check li:before{content:'';top:.45rem;width:9px;height:9px;border-radius:2px;
 .pdfstatus.err{color:#8A4A4A}
 .pdfstatus.ok{color:#4A7A4A}
 @media print{.pdfdrop{display:none}}
+
+.reimport{display:none}
+@media print{
+  .reimport{display:block;margin-top:14px;padding-top:8px;border-top:1px solid #ccc;
+    font-family:Helvetica,Arial,sans-serif;font-size:6.5pt;line-height:1.25;color:#666;
+    white-space:pre-wrap;word-break:break-word;break-before:page}
+  .reimport h4{font-family:Helvetica,Arial,sans-serif;font-size:7pt;margin:0 0 4px;color:#444}
+}
 </style></head>
 <body>
 <div class="doc">
@@ -240,15 +248,13 @@ ul.check li:before{content:'';top:.45rem;width:9px;height:9px;border-radius:2px;
   </button>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
 function downloadPDF(){
+  /* window.print() keeps the text in the PDF. html2pdf rasterised the page,
+     which is why the exported file could never be re-uploaded. */
   document.querySelectorAll('.card').forEach(function(c){c.classList.add('open');});
-  var el=document.querySelector('.doc');
-  html2pdf().set({margin:[8,8,8,8],filename:document.title.replace(/\s+/g,'_')+'.pdf',
-    image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true},
-    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-    pagebreak:{mode:['css','legacy']}}).from(el).save();
+  if(typeof buildReimport==='function') buildReimport();
+  window.print();
 }
 document.addEventListener('click',function(e){var b=e.target.closest('.box'); if(b){b.classList.toggle('checked');}});
 function delBlock(btn){var g=btn.closest('.goal');var p=g.parentNode;if(p.querySelectorAll(':scope > .goal').length>1){g.remove();}}
@@ -290,6 +296,10 @@ window.importRecord=function(){
   var text=el?el.value:'';
   if(!text.trim()){ alert('Upload a PDF or paste the record text first.'); return; }
   var T=text.replace(/\r/g,'');
+  /* A PDF exported from this page contains both the visible form and the
+     machine-readable block. Parse only the block when it is there. */
+  var mk=T.indexOf('ATRIA-IMPORT-V1');
+  if(mk>-1) T=T.slice(mk+'ATRIA-IMPORT-V1'.length);
   var filled=[];
 
   /* Every known heading. A section runs until the next heading of any kind,
@@ -695,5 +705,92 @@ window.importRecord=function(){
     if(e.dataTransfer && e.dataTransfer.files.length) handle(e.dataTransfer.files);
   });
 })();
+</script>
+<div class="reimport"><h4>Machine-readable copy &mdash; upload this PDF to the Medical History template to restore these fields.</h4><div id="reimportText"></div></div>
+<script>
+/* Writes the current form into a print-only block in the import format, so the
+   exported PDF can be uploaded back into a blank template. */
+function buildReimport(){
+  var out=['ATRIA-IMPORT-V1'];
+  function spanAfter(label, nth){
+    var hits=[];
+    document.querySelectorAll('.fieldrow label').forEach(function(lb){
+      if(lb.textContent.trim().toLowerCase()===label.toLowerCase()){
+        var sp=lb.nextElementSibling;
+        if(sp && sp.hasAttribute('contenteditable')) hits.push(sp);
+      }
+    });
+    return hits.length>=nth ? hits[nth-1].textContent.trim() : '';
+  }
+  function kvLine(key, val){ if(val) out.push(key+': '+val); }
+
+  out.push('', 'CLIENT INFORMATION');
+  kvLine('Name', spanAfter('Full name:',1));
+  kvLine('DOB', spanAfter('Date of birth:',1));
+  kvLine('Sex', spanAfter('Sex:',1));
+  kvLine('Health card', spanAfter('Health card #:',1));
+  kvLine('Language', spanAfter('Preferred language:',1));
+  kvLine('Address', spanAfter('Address:',1));
+  kvLine('Phone', spanAfter('Phone:',1));
+  kvLine('Alternate phone', spanAfter('Alternate phone:',1));
+  kvLine('Family physician', spanAfter('Family physician / NP:',1));
+  kvLine('Pharmacy', spanAfter('Pharmacy:',1));
+  var ec=[spanAfter('Name:',1),spanAfter('Relationship:',1),spanAfter('Phone:',2)];
+  if(ec.join('')) out.push('Emergency contact: '+ec.join(' | '));
+  var sd=[spanAfter('Name:',2),spanAfter('Relationship:',2),spanAfter('Phone:',3)];
+  if(sd.join('')) out.push('SDM: '+sd.join(' | '));
+
+  var rc=document.querySelector('.notes[data-ph="Describe the presenting concerns"]');
+  if(rc && rc.textContent.trim()){ out.push('', 'REASON FOR CARE', rc.textContent.trim()); }
+
+  var MAP={'Diagnoses / conditions':'DIAGNOSES','Allergies':'ALLERGIES',
+           'Care team':'CARE PROVIDERS','Procedures':'SURGICAL HX',
+           'Tests':'TESTING RESULTS','Medications':'CURRENT MEDICATIONS',
+           'Immunizations':'IMMUNIZATIONS','Family history':'FAMILY HISTORY'};
+  Object.keys(MAP).forEach(function(lbl){
+    var sec=null;
+    document.querySelectorAll('.sec-lbl').forEach(function(e){
+      if(e.textContent.trim()===lbl) sec=e.closest('.sec');
+    });
+    if(!sec) return;
+    var t=sec.querySelector('table'); if(!t) return;
+    var rows=[];
+    t.querySelectorAll('tbody tr').forEach(function(tr){
+      var vals=[];
+      tr.querySelectorAll('td[contenteditable]').forEach(function(td){
+        vals.push(td.textContent.replace(/\s+/g,' ').replace(/\|/g,'/').trim());
+      });
+      if(vals.join('')) rows.push(vals.join(' | '));
+    });
+    if(rows.length) out.push('', MAP[lbl], rows.join('\n'));
+  });
+
+  var soc=[['Living situation:','Living situation'],['Occupation:','Occupation'],
+           ['Smoking:','Smoking'],['Alcohol:','Alcohol'],['Substances:','Substances'],
+           ['Mobility aids:','Mobility aids'],['Diet:','Diet']];
+  var sl=[];
+  soc.forEach(function(pair){ var v=spanAfter(pair[0],1); if(v) sl.push(pair[1]+': '+v); });
+  if(sl.length) out.push('', 'SOCIAL HISTORY', sl.join('\n'));
+
+  var fsSec=null;
+  document.querySelectorAll('.sec-lbl').forEach(function(e){
+    if(/functional/i.test(e.textContent)) fsSec=e.closest('.sec');
+  });
+  if(fsSec){
+    var ticked=[];
+    fsSec.querySelectorAll('.consent-line').forEach(function(l){
+      var b=l.querySelector('.box');
+      if(b && b.classList.contains('checked')){
+        var sp=l.querySelectorAll('span');
+        if(sp.length) ticked.push(sp[sp.length-1].textContent.trim());
+      }
+    });
+    if(ticked.length) out.push('', 'FUNCTIONAL STATUS', ticked.join('\n'));
+  }
+
+  var el=document.getElementById('reimportText');
+  if(el) el.textContent=out.join('\n');
+}
+window.addEventListener('beforeprint', buildReimport);
 </script>
 </body></html>
