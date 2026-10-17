@@ -339,6 +339,20 @@ window.importRecord=function(){
     if(fillTable('Immunizations', [[name, d, '']])) filled.push('Immunizations');
   }
 
+  /* TESTING RESULTS: one line per entry, "Test | Date | Findings".
+     Falls back to "<date>- <text>" when the pipes are absent. */
+  var tr=between(T,/TESTING RESULTS/i,[]);
+  if(tr){
+    var rows=lines(tr).map(function(l){
+      var p=l.split('|');
+      if(p.length>=3) return [p[0].trim(), p[1].trim(), p.slice(2).join('|').trim()];
+      var d=firstDate(l);
+      var rest=d ? l.replace(d,'').replace(/^[\s\-\u2013\u2014]+/,'').trim() : l;
+      return [rest, d, ''];
+    }).filter(function(r){ return r[0]||r[1]; });
+    if(fillTable('Tests', rows)) filled.push('Tests ('+rows.length+')');
+  }
+
   document.querySelectorAll('.card').forEach(function(c){c.classList.add('open');});
   alert(filled.length? 'Auto-filled: '+filled.join(', ')+'.\nPlease review and adjust each section.' : 'No recognizable sections found. Check the pasted text.');
 };
