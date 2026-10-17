@@ -347,9 +347,12 @@ window.importRecord=function(){
 </script>
 
 <script>
-/* PDF upload -> text -> the existing importRecord(). PDF.js is fetched only
-   when a file is actually chosen, and the document itself never leaves the
-   browser. */
+/* PDF upload -> text -> the existing importRecord().
+
+   PDF.js runs on the MAIN THREAD (disableWorker). Its normal mode starts a
+   Worker from the CDN, and a Worker cannot be created from another origin,
+   so that path hangs forever instead of failing. Parsing on the main thread
+   costs a brief pause on a long record and always works. */
 (function(){
   var V='3.11.174';
   var LIB='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/'+V+'/pdf.min.js';
@@ -364,20 +367,36 @@ window.importRecord=function(){
 
   function say(msg,kind){ statusEl.textContent=msg||''; statusEl.className='pdfstatus'+(kind?' '+kind:''); }
 
-  function loadLib(){
-    if(window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
-    if(pending) return pending;
-    pending=new Promise(function(res,rej){
+  function script(src){
+    return new Promise(function(res,rej){
       var sc=document.createElement('script');
-      sc.src=LIB;
-      sc.onload=function(){
-        if(window.pdfjsLib){ window.pdfjsLib.GlobalWorkerOptions.workerSrc=WORKER; res(window.pdfjsLib); }
-        else rej(new Error('The PDF reader did not load.'));
-      };
+      sc.src=src;
+      sc.onload=function(){ res(); };
       sc.onerror=function(){ rej(new Error('Could not download the PDF reader. Check your connection and try again.')); };
       document.head.appendChild(sc);
     });
+  }
+
+  function loadLib(){
+    if(window.pdfjsLib && window.pdfjsWorker) return Promise.resolve(window.pdfjsLib);
+    if(pending) return pending;
+    /* the worker file is loaded as a page script so PDF.js can run it in
+       this thread rather than trying to start a cross-origin Worker */
+    pending=script(LIB).then(function(){ return script(WORKER); }).then(function(){
+      if(!window.pdfjsLib) throw new Error('The PDF reader did not load.');
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc=WORKER;
+      return window.pdfjsLib;
+    });
     return pending;
+  }
+
+  function withTimeout(promise, ms, msg){
+    return new Promise(function(res, rej){
+      var done=false;
+      var t=setTimeout(function(){ if(!done){ done=true; rej(new Error(msg)); } }, ms);
+      promise.then(function(v){ if(!done){ done=true; clearTimeout(t); res(v); } },
+                   function(e){ if(!done){ done=true; clearTimeout(t); rej(e); } });
+    });
   }
 
   /* Rebuild lines from item positions: the importer looks for headings on
@@ -396,28 +415,16 @@ window.importRecord=function(){
                      .map(function(p){ return p[1]; }).join(' ').replace(/\s+/g,' ').trim();
     }).filter(Boolean).join('\n');
   }
-
-  /* If the PDF engine cannot start, fail with a message instead of a
-     spinner that never resolves. */
-  function withTimeout(promise, ms, msg){
-    return new Promise(function(res, rej){
-      var done=false;
-      var t=setTimeout(function(){ if(!done){ done=true; rej(new Error(msg)); } }, ms);
-      promise.then(function(v){ if(!done){ done=true; clearTimeout(t); res(v); } },
-                   function(e){ if(!done){ done=true; clearTimeout(t); rej(e); } });
-    });
-  }
-
   function readOne(file, lib){
     return file.arrayBuffer().then(function(buf){
-      return withTimeout(lib.getDocument({data:buf}).promise, 45000,
+      return withTimeout(lib.getDocument({data:buf, disableWorker:true}).promise, 60000,
         'The PDF reader did not respond. Try again, or paste the text below instead.');
     }).then(function(pdf){
       var out=[], chain=Promise.resolve();
       for(var n=1;n<=pdf.numPages;n++){
         (function(page){
           chain=chain.then(function(){
-            say('Reading '+file.name+' — page '+page+' of '+pdf.numPages+'…');
+            say('Reading '+file.name+' \u2014 page '+page+' of '+pdf.numPages+'\u2026');
             return pdf.getPage(page).then(function(pg){ return pg.getTextContent(); })
                       .then(function(tc){ out.push(itemsToText(tc.items)); });
           });
@@ -432,36 +439,37 @@ window.importRecord=function(){
       return /\.pdf$/i.test(f.name) || f.type==='application/pdf';
     });
     if(!files.length){ say('That is not a PDF. Choose a PDF file, or paste the text below.','err'); return; }
-    say('Loading the PDF reader…');
+    say('Loading the PDF reader\u2026');
     loadLib().then(function(lib){
-      var texts=[], chain=Promise.resolve();
+      var texts=[], problems=[], chain=Promise.resolve();
       files.forEach(function(f){
         chain=chain.then(function(){
           return readOne(f,lib).then(function(t){ texts.push(t); }, function(e){
-            var msg=(e&&e.name==='PasswordException')
-              ? file_pw(f) : f.name+' could not be read ('+((e&&e.message)||'unknown error')+').';
-            texts.push('');
-            say(msg,'err');
+            /* remember the real reason: it must not be replaced by the
+               generic "no text" message further down */
+            problems.push(f.name+': '+((e&&e.name==='PasswordException')
+              ? 'password-protected. Remove the password, or paste the text below.'
+              : (e&&e.message)||'could not be read.'));
           });
         });
       });
       return chain.then(function(){
         var all=texts.join('\n\n').trim();
         if(!all){
-          say('No text found. This PDF is probably a scan or a photo, which has no text layer — '
-             +'export a text-based PDF from the source system, or paste the text below.','err');
+          say(problems.length ? problems.join(' ')
+            : 'No text found. This PDF has no text layer, which usually means it is a scan or a '
+             +'photo \u2014 export a text-based PDF from the source system, or paste the text below.','err');
           return;
         }
         textEl.value=all;
-        say('Read '+files.length+' file'+(files.length>1?'s':'')+' — '+all.length.toLocaleString()
-           +' characters. Filling the sections…','ok');
         if(typeof window.importRecord==='function') window.importRecord();
-        say('Done. Check the text below against the filled sections before you rely on them.','ok');
+        var note='Read '+files.length+' file'+(files.length>1?'s':'')+', '+all.length.toLocaleString()
+                +' characters. Check the text below against the filled sections.';
+        say(problems.length ? note+' Some files failed: '+problems.join(' ') : note,
+            problems.length?'err':'ok');
       });
     }).catch(function(e){ say((e&&e.message)||'Something went wrong reading the PDF.','err'); });
   }
-
-  function file_pw(f){ return f.name+' is password-protected. Remove the password, or paste the text below.'; }
 
   pick.addEventListener('click', function(){ input.click(); });
   input.addEventListener('change', function(){ if(input.files.length) handle(input.files); input.value=''; });
