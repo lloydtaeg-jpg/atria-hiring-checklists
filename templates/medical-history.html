@@ -91,7 +91,7 @@ ul.check li:before{content:'';top:.45rem;width:9px;height:9px;border-radius:2px;
 .qtable{width:100%;border-collapse:collapse;margin-top:.4rem;font-size:.8rem;}.qtable th{background:var(--spring);color:var(--aegean-dark);font-family:'Lora',serif;font-weight:600;text-align:left;padding:.4rem .55rem;border:1px solid var(--border);font-size:.68rem;text-transform:uppercase;letter-spacing:.4px;}.qtable td{border:1px solid var(--border);padding:.4rem .55rem;color:var(--text-mid);vertical-align:top;}.qtable td.rowlbl{font-weight:600;color:var(--text);background:var(--cream);white-space:nowrap;}.qtable td[contenteditable]{display:table-cell;min-width:0;padding:.4rem .55rem;border:1px solid var(--border);border-radius:0;outline:none;}.qtable td[contenteditable]:empty:before{content:attr(data-ph);color:var(--text-light);font-style:italic;}.qtable td[contenteditable]:focus{background:rgba(111,151,151,.06);}
 .chknote{display:block;margin:.15rem 0 .6rem 1.7rem;min-height:1.7rem;width:calc(100% - 1.7rem);}
 .add-btn{margin:0 0 .5rem;background:transparent;border:1px dashed var(--aegean);color:var(--aegean-dark);border-radius:6px;padding:.35rem .7rem;font-family:'Inter',sans-serif;font-size:.75rem;font-weight:500;cursor:pointer;}.add-btn:hover{background:rgba(111,151,151,.08);border-color:var(--aegean-dark);}@media print{.add-btn{display:none;}}
-.goal{position:relative;}.del-btn{background:transparent;border:none;color:var(--text-light);cursor:pointer;font-size:1rem;line-height:1;padding:.1rem .35rem;border-radius:4px;}.del-btn:hover{color:#b04a4a;background:rgba(176,74,74,.09);}.goal-del{position:absolute;top:.45rem;right:.45rem;}.qtable th.delcol{border:none;background:transparent;width:52px;padding:0;}.qtable td.delcell{border:none;text-align:center;width:52px;padding:.15rem;white-space:nowrap;.qtable td.delcell .del-btn{vertical-align:middle;}.rowmv{display:inline-flex;flex-direction:column;gap:3px;vertical-align:middle;margin-right:3px;}.mv-btn{background:transparent;border:none;color:var(--text-light);cursor:pointer;font-size:.58rem;line-height:1;padding:1px 3px;border-radius:3px;}.mv-btn:hover{color:var(--aegean-dark);background:rgba(90,130,130,.12);}@media print{.del-btn,.mv-btn,.rowmv,.qtable td.delcell,.qtable th.delcol{display:none;}}
+.goal{position:relative;}.del-btn{background:transparent;border:none;color:var(--text-light);cursor:pointer;font-size:1rem;line-height:1;padding:.1rem .35rem;border-radius:4px;}.del-btn:hover{color:#b04a4a;background:rgba(176,74,74,.09);}.goal-del{position:absolute;top:.45rem;right:.45rem;}.qtable th.delcol{border:none;background:transparent;width:52px;padding:0;}.qtable td.delcell{border:none;text-align:center;width:52px;padding:.15rem;white-space:nowrap;}.qtable td.delcell .del-btn{vertical-align:middle;}.rowmv{display:inline-flex;flex-direction:column;gap:3px;vertical-align:middle;margin-right:3px;}.mv-btn{background:transparent;border:none;color:var(--text-light);cursor:pointer;font-size:.58rem;line-height:1;padding:1px 3px;border-radius:3px;}.mv-btn:hover{color:var(--aegean-dark);background:rgba(90,130,130,.12);}@media print{.del-btn,.mv-btn,.rowmv,.qtable td.delcell,.qtable th.delcol{display:none;}}
 
 .import-panel{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--aegean);border-radius:0 8px 8px 0;padding:.9rem 1rem;margin-bottom:1rem;}.import-title{font-family:'Lora',serif;font-weight:600;color:var(--aegean-dark);font-size:.95rem;margin-bottom:.2rem;}.import-hint{font-size:.76rem;color:var(--text-mid);margin-bottom:.5rem;line-height:1.5;}.import-panel textarea{width:100%;min-height:110px;border:1px solid var(--border);border-radius:6px;padding:.5rem;font-family:'Inter',sans-serif;font-size:.8rem;color:var(--text);resize:vertical;box-sizing:border-box;}.import-panel .btns{margin-top:.5rem;display:flex;gap:.5rem;}@media print{.import-panel{display:none;}}
 
@@ -136,13 +136,14 @@ ul.check li:before{content:'';top:.45rem;width:9px;height:9px;border-radius:2px;
 .atria-data{display:none}
 @media print{
   .atria-import{display:none!important}
-  .atria-data{display:block;break-before:page;page-break-before:always;margin-top:14px;
-    padding-top:8px;border-top:1px solid #ccc;font-family:Helvetica,Arial,sans-serif;
-    font-size:5.5pt;line-height:1.22;color:#777}
-  .atria-data h4{font-family:Helvetica,Arial,sans-serif;font-size:7pt;font-weight:700;
-    margin:0 0 4px;color:#555}
-  .atria-data .adl{white-space:normal;overflow-wrap:anywhere}
-  .atria-data .adl-mark{font-weight:700}
+  .atria-data{display:block;margin-top:10px;padding-top:5px;border-top:1px solid #ececec;
+    font-family:Helvetica,Arial,sans-serif}
+  .atria-data h4{font-family:Helvetica,Arial,sans-serif;font-size:5.5pt;font-weight:400;
+    margin:0;color:#c0c0c0;letter-spacing:.01em}
+  /* The answers sit in the PDF's text layer so the file can be read back in,
+     printed white on white at a hair's height: there is nothing to see. */
+  .atria-data .adl{font-size:3.2pt;line-height:1;color:#fff;white-space:normal;
+    overflow-wrap:anywhere;letter-spacing:0;margin:0}
 }
 </style></head>
 <body>
@@ -854,7 +855,7 @@ function buildReimport(){
 }
 window.addEventListener('beforeprint', buildReimport);
 </script>
-<div class="atria-data" id="atriaDataWrap"><h4>Saved answers &mdash; upload this PDF to the template to bring these fields back.</h4><div id="atriaData"></div></div>
+<div class="atria-data" id="atriaDataWrap"><h4>This PDF carries its own answers: upload it to the template to fill the form back in.</h4><div id="atriaData"></div></div>
 <!-- atria-roundtrip:start -->
 <script>
 /* Atria PDF round-trip, shared by every fillable template.
@@ -869,7 +870,7 @@ window.addEventListener('beforeprint', buildReimport);
    Source of truth: tools/pdf-roundtrip.js. Injected inline by
    tools/add_roundtrip.py; edit it there and re-run, never in the template. */
 (function(){
-  var MARK='ATRIA-DATA-V1', END='ATRIA-DATA-END', WIDTH=96;
+  var MARK='ATRIA-DATA-V1', END='ATRIA-DATA-END', WIDTH=100;
 
   function enc(s){ var b=new TextEncoder().encode(s), o='';
     for(var i=0;i<b.length;i++){ o+=String.fromCharCode(b[i]); } return btoa(o); }
@@ -895,6 +896,9 @@ window.addEventListener('beforeprint', buildReimport);
       d.textContent=text; el.appendChild(d);
     }
     ln(MARK,'adl adl-mark');
+    /* Each chunk is short enough that it cannot wrap at the printed size.
+       A wrapped line would put its closing ~ on the next row, and the reader
+       would pair that tilde with the wrong chunk. */
     /* Base64 only, and each line is framed with ~, so a browser's own print
        header or page number landing on these pages cannot be read as payload.
        One element per line: a single wrapped paragraph gets reflowed on print
@@ -908,9 +912,15 @@ window.addEventListener('beforeprint', buildReimport);
   window.atriaReadData=function(text){
     var a=text.indexOf(MARK); if(a<0){ return null; }
     var b=text.indexOf(END,a); if(b<0){ b=text.length; }
-    var seg=text.slice(a+MARK.length,b), out='', re=/~([A-Za-z0-9+\/=\s]+?)~/g, m;
-    while((m=re.exec(seg))){ out+=m[1].replace(/\s+/g,''); }
-    if(!out){ return null; }
+    var seg=text.slice(a+MARK.length,b), chunks=[], re=/~([A-Za-z0-9+\/=\s]+?)~/g, m;
+    while((m=re.exec(seg))){ chunks.push(m[1].replace(/\s+/g,'')); }
+    if(!chunks.length){ return null; }
+    /* every chunk but the last is a full line; a short one means the text came
+       back broken, and a half-restored form is worse than none */
+    for(var i=0;i<chunks.length-1;i++){
+      if(chunks[i].length!==WIDTH){ return null; }
+    }
+    var out=chunks.join('');
     try{ return JSON.parse(dec(out)); }catch(e){ return null; }
   };
 

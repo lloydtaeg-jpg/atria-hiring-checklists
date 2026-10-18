@@ -113,13 +113,14 @@ textarea.field-input{ min-height:64px; resize:vertical; border:1px solid rgba(47
 .atria-data{display:none}
 @media print{
   .atria-import{display:none!important}
-  .atria-data{display:block;break-before:page;page-break-before:always;margin-top:14px;
-    padding-top:8px;border-top:1px solid #ccc;font-family:Helvetica,Arial,sans-serif;
-    font-size:5.5pt;line-height:1.22;color:#777}
-  .atria-data h4{font-family:Helvetica,Arial,sans-serif;font-size:7pt;font-weight:700;
-    margin:0 0 4px;color:#555}
-  .atria-data .adl{white-space:normal;overflow-wrap:anywhere}
-  .atria-data .adl-mark{font-weight:700}
+  .atria-data{display:block;margin-top:10px;padding-top:5px;border-top:1px solid #ececec;
+    font-family:Helvetica,Arial,sans-serif}
+  .atria-data h4{font-family:Helvetica,Arial,sans-serif;font-size:5.5pt;font-weight:400;
+    margin:0;color:#c0c0c0;letter-spacing:.01em}
+  /* The answers sit in the PDF's text layer so the file can be read back in,
+     printed white on white at a hair's height: there is nothing to see. */
+  .atria-data .adl{font-size:3.2pt;line-height:1;color:#fff;white-space:normal;
+    overflow-wrap:anywhere;letter-spacing:0;margin:0}
 }
 </style>
 </head>
@@ -171,7 +172,7 @@ textarea.field-input{ min-height:64px; resize:vertical; border:1px solid rgba(47
       <div class="note">Required by SOP 44, Supervision and performance review: a supervisory visit within three months of hire and at least yearly after.</div>
     </div>
   </div>
-<div class="atria-data" id="atriaDataWrap"><h4>Saved answers &mdash; upload this PDF to the template to bring these fields back.</h4><div id="atriaData"></div></div>
+<div class="atria-data" id="atriaDataWrap"><h4>This PDF carries its own answers: upload it to the template to fill the form back in.</h4><div id="atriaData"></div></div>
 <!-- atria-roundtrip:start -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
@@ -188,7 +189,7 @@ textarea.field-input{ min-height:64px; resize:vertical; border:1px solid rgba(47
    Source of truth: tools/pdf-roundtrip.js. Injected inline by
    tools/add_roundtrip.py; edit it there and re-run, never in the template. */
 (function(){
-  var MARK='ATRIA-DATA-V1', END='ATRIA-DATA-END', WIDTH=96;
+  var MARK='ATRIA-DATA-V1', END='ATRIA-DATA-END', WIDTH=100;
 
   function enc(s){ var b=new TextEncoder().encode(s), o='';
     for(var i=0;i<b.length;i++){ o+=String.fromCharCode(b[i]); } return btoa(o); }
@@ -214,6 +215,9 @@ textarea.field-input{ min-height:64px; resize:vertical; border:1px solid rgba(47
       d.textContent=text; el.appendChild(d);
     }
     ln(MARK,'adl adl-mark');
+    /* Each chunk is short enough that it cannot wrap at the printed size.
+       A wrapped line would put its closing ~ on the next row, and the reader
+       would pair that tilde with the wrong chunk. */
     /* Base64 only, and each line is framed with ~, so a browser's own print
        header or page number landing on these pages cannot be read as payload.
        One element per line: a single wrapped paragraph gets reflowed on print
@@ -227,9 +231,15 @@ textarea.field-input{ min-height:64px; resize:vertical; border:1px solid rgba(47
   window.atriaReadData=function(text){
     var a=text.indexOf(MARK); if(a<0){ return null; }
     var b=text.indexOf(END,a); if(b<0){ b=text.length; }
-    var seg=text.slice(a+MARK.length,b), out='', re=/~([A-Za-z0-9+\/=\s]+?)~/g, m;
-    while((m=re.exec(seg))){ out+=m[1].replace(/\s+/g,''); }
-    if(!out){ return null; }
+    var seg=text.slice(a+MARK.length,b), chunks=[], re=/~([A-Za-z0-9+\/=\s]+?)~/g, m;
+    while((m=re.exec(seg))){ chunks.push(m[1].replace(/\s+/g,'')); }
+    if(!chunks.length){ return null; }
+    /* every chunk but the last is a full line; a short one means the text came
+       back broken, and a half-restored form is worse than none */
+    for(var i=0;i<chunks.length-1;i++){
+      if(chunks[i].length!==WIDTH){ return null; }
+    }
+    var out=chunks.join('');
     try{ return JSON.parse(dec(out)); }catch(e){ return null; }
   };
 

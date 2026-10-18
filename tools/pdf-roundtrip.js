@@ -10,7 +10,7 @@
    Source of truth: tools/pdf-roundtrip.js. Injected inline by
    tools/add_roundtrip.py; edit it there and re-run, never in the template. */
 (function(){
-  var MARK='ATRIA-DATA-V1', END='ATRIA-DATA-END', WIDTH=96;
+  var MARK='ATRIA-DATA-V1', END='ATRIA-DATA-END', WIDTH=100;
 
   function enc(s){ var b=new TextEncoder().encode(s), o='';
     for(var i=0;i<b.length;i++){ o+=String.fromCharCode(b[i]); } return btoa(o); }
@@ -36,6 +36,9 @@
       d.textContent=text; el.appendChild(d);
     }
     ln(MARK,'adl adl-mark');
+    /* Each chunk is short enough that it cannot wrap at the printed size.
+       A wrapped line would put its closing ~ on the next row, and the reader
+       would pair that tilde with the wrong chunk. */
     /* Base64 only, and each line is framed with ~, so a browser's own print
        header or page number landing on these pages cannot be read as payload.
        One element per line: a single wrapped paragraph gets reflowed on print
@@ -49,9 +52,15 @@
   window.atriaReadData=function(text){
     var a=text.indexOf(MARK); if(a<0){ return null; }
     var b=text.indexOf(END,a); if(b<0){ b=text.length; }
-    var seg=text.slice(a+MARK.length,b), out='', re=/~([A-Za-z0-9+\/=\s]+?)~/g, m;
-    while((m=re.exec(seg))){ out+=m[1].replace(/\s+/g,''); }
-    if(!out){ return null; }
+    var seg=text.slice(a+MARK.length,b), chunks=[], re=/~([A-Za-z0-9+\/=\s]+?)~/g, m;
+    while((m=re.exec(seg))){ chunks.push(m[1].replace(/\s+/g,'')); }
+    if(!chunks.length){ return null; }
+    /* every chunk but the last is a full line; a short one means the text came
+       back broken, and a half-restored form is worse than none */
+    for(var i=0;i<chunks.length-1;i++){
+      if(chunks[i].length!==WIDTH){ return null; }
+    }
+    var out=chunks.join('');
     try{ return JSON.parse(dec(out)); }catch(e){ return null; }
   };
 

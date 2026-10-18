@@ -25,8 +25,8 @@ PANEL = """<div class="atria-import no-print" id="atriaImport">
 </div>
 """
 
-BLOCK = ('<div class="atria-data" id="atriaDataWrap"><h4>Saved answers &mdash; upload this PDF '
-         'to the template to bring these fields back.</h4><div id="atriaData"></div></div>\n')
+BLOCK = ('<div class="atria-data" id="atriaDataWrap"><h4>This PDF carries its own answers: upload it to the template to fill the form back in.</h4>'
+         '<div id="atriaData"></div></div>\n')
 
 CSS = """
 /* --- Atria PDF round-trip (tools/add_roundtrip.py) --- */
@@ -48,13 +48,14 @@ CSS = """
 .atria-data{display:none}
 @media print{
   .atria-import{display:none!important}
-  .atria-data{display:block;break-before:page;page-break-before:always;margin-top:14px;
-    padding-top:8px;border-top:1px solid #ccc;font-family:Helvetica,Arial,sans-serif;
-    font-size:5.5pt;line-height:1.22;color:#777}
-  .atria-data h4{font-family:Helvetica,Arial,sans-serif;font-size:7pt;font-weight:700;
-    margin:0 0 4px;color:#555}
-  .atria-data .adl{white-space:normal;overflow-wrap:anywhere}
-  .atria-data .adl-mark{font-weight:700}
+  .atria-data{display:block;margin-top:10px;padding-top:5px;border-top:1px solid #ececec;
+    font-family:Helvetica,Arial,sans-serif}
+  .atria-data h4{font-family:Helvetica,Arial,sans-serif;font-size:5.5pt;font-weight:400;
+    margin:0;color:#c0c0c0;letter-spacing:.01em}
+  /* The answers sit in the PDF's text layer so the file can be read back in,
+     printed white on white at a hair's height: there is nothing to see. */
+  .atria-data .adl{font-size:3.2pt;line-height:1;color:#fff;white-space:normal;
+    overflow-wrap:anywhere;letter-spacing:0;margin:0}
 }
 """
 
@@ -155,7 +156,9 @@ if __name__ == '__main__':
 def refresh_module():
     """Push the current tools/pdf-roundtrip.js into every template that has it."""
     import glob
-    for path in sorted(glob.glob(os.path.join(ROOT, 'templates', '*.html'))):
+    paths = sorted(glob.glob(os.path.join(ROOT, 'templates', '*.html')))
+    paths += [os.path.join(ROOT, n + '.html') for n, _ in ROOT_DOCS]
+    for path in paths:
         s = io.open(path, encoding='utf-8').read()
         if START not in s:
             continue
