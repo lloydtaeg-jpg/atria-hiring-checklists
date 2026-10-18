@@ -1319,21 +1319,51 @@ setupCsvDrop(document.getElementById('csvDropClinical'), document.getElementById
   }
   var TEXTIN='input[type="text"],input[type="date"],input[type="number"],input[type="tel"],input[type="email"],input:not([type])';
 
-  /* The fields are restored by position, so a PDF saved before the form was
-     reordered would put every answer in the wrong box. The shape travels with
-     the answers and is checked before anything is written. */
+  /* The fields are restored by position, so a form whose fields have been
+     reordered would put every answer in the wrong box. Counting the fields is
+     not enough: moving a whole section leaves every count identical. The
+     fingerprint walks the fields in document order and records what each one
+     is, so any move changes it. */
+  function fieldName(el){
+    /* A table cell is named by its column, not its prompt: a row the importer
+       builds carries no prompt, so naming it by the prompt would make the
+       fingerprint depend on how the row happened to be created. */
+    if(el.tagName==='TD' && el.closest && el.closest('table')){
+      var sec=el.closest('.sec'), lbl=sec && sec.querySelector('.sec-lbl');
+      return 'col'+el.cellIndex+'@'+(lbl?lbl.textContent.trim():'table');
+    }
+    if(el.getAttribute){
+      var ph=el.getAttribute('data-ph') || el.getAttribute('placeholder');
+      if(ph) return ph;
+    }
+    var sec=el.closest && el.closest('.sec');
+    var lbl=sec && sec.querySelector('.sec-lbl');
+    if(lbl) return lbl.textContent.trim();
+    var prev=el.previousElementSibling;
+    if(prev && /^(LABEL|B|SPAN)$/.test(prev.tagName)) return prev.textContent.trim();
+    return el.tagName;
+  }
   function shape(){
-    return [list(document,'[contenteditable]').length,
-            list(document,TEXTIN).length,
-            list(document,'textarea').length,
-            list(document,'input[type="checkbox"]').length,
-            list(document,'.box').length].join('/');
+    var parts=[];
+    ['[contenteditable]',TEXTIN,'textarea','input[type="checkbox"]','.box'].forEach(function(sel,k){
+      list(document,sel).forEach(function(el){ parts.push(k+':'+fieldName(el)); });
+    });
+    /* a short, stable digest of that walk */
+    var h1=0x811c9dc5, h2=0x01000193|0;
+    for(var i=0;i<parts.length;i++){
+      var t=parts[i];
+      for(var j=0;j<t.length;j++){
+        h1=(h1^t.charCodeAt(j))>>>0; h1=(h1*16777619)>>>0;
+        h2=(h2+((t.charCodeAt(j)*(i+1))|0))>>>0;
+      }
+    }
+    return parts.length+'.'+h1.toString(36)+h2.toString(36);
   }
   window.atriaShape=shape;
 
   window.atriaGenericCollect=function(){
     return {
-      t:'atria-form', v:1, id:window.atriaFormId||document.title, sig:shape(),
+      t:'atria-form', v:1, id:window.atriaFormId||document.title, fp:shape(),
       ce:list(document,'[contenteditable]').map(ceText),
       inp:list(document,TEXTIN).map(function(e){ return e.value; }),
       ta:list(document,'textarea').map(function(e){ return e.value; }),
@@ -1342,9 +1372,12 @@ setupCsvDrop(document.getElementById('csvDropClinical'), document.getElementById
     };
   };
   window.atriaGenericApply=function(d){
-    /* null means "these answers do not fit this form"; a half-filled record
-       is worse than none */
-    if(d && d.sig && d.sig!==shape()){ return null; }
+    /* null means "these answers do not fit this form"; a half-filled record,
+       or one filed into the wrong boxes, is far worse than none */
+    if(d && d.fp && d.fp!==shape()){ return null; }
+    /* a PDF carrying only the old field count cannot prove the order matches,
+       so it is accepted only while this form's layout has never moved */
+    if(d && !d.fp && window.atriaLayoutMoved){ return null; }
     var n=0;
     function pour(nodes, vals, set){
       if(!vals) return;

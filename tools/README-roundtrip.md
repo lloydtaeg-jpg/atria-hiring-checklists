@@ -69,8 +69,14 @@ Elements inside `.import-panel`, `.atria-import`, `.import-wrap` or anything
 marked `data-atria-skip` are page furniture, not form, and are left out.
 
 The fields are restored by position, so reordering a form would put every
-answer from an older PDF in the wrong box. The form's shape — how many
-contenteditable fields, inputs, textareas, checkboxes and `.box` spans it has —
-travels with the answers as `sig` and is checked before anything is written.
-A mismatch writes nothing and says so; Medical History falls back to reading the
-PDF as text. A PDF saved before `sig` existed carries none, and still restores.
+answer from an older PDF in the wrong box. Counting the fields does not catch
+that: moving a whole section leaves every count identical, which is exactly how
+a record once came back with its procedures in the medications table. The
+fingerprint in `fp` walks the fields in document order and records what each one
+is — a table cell by its column and section, everything else by its prompt or
+label — so any move changes it. A mismatch writes nothing and says so; Medical
+History falls back to reading the PDF as text.
+
+Name a table cell by its column, never by its prompt: a row the importer builds
+carries no prompt, so the fingerprint would otherwise depend on how the row
+happened to be created.
