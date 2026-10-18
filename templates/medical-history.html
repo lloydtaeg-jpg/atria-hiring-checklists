@@ -350,7 +350,13 @@ window.importRecord=function(){
     /CARE PROVIDERS/i,/SURGICAL HX/i,/CURRENT MEDICATIONS/i,/IMMUNIZATIONS\s*:?/i,
     /TESTING RESULTS/i,/FAMILY HISTORY/i,/SOCIAL HISTORY/i,/FUNCTIONAL STATUS/i,
     /Former smoker/i,/\bPRN\b/i];
-  function atLineStart(re){ return new RegExp('^[\\s]*(?:' + re.source + ')', 'im'); }
+  /* A heading is a line that IS the heading, or one followed by a colon.
+     Merely starting with the word is not enough: a findings cell that
+     wrapped onto a line beginning "PRN Lasix..." ended the Tests section
+     there and dropped every row after it. */
+  function atLineStart(re){
+    return new RegExp('^[\\s]*(?:' + re.source + ')(?:\\s*$|\\s*:)', 'im');
+  }
   function section(re){
     var others=HEADERS.filter(function(h){ return h.source!==re.source; }).map(atLineStart);
     return between(T, atLineStart(re), others);
@@ -405,7 +411,12 @@ window.importRecord=function(){
     var t=String(v==null?'':v).trim();
     if(!t) return -1;
     var m;
-    if((m=t.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/))) return ymd(m[3],m[1],m[2]);
+    if((m=t.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/))){
+      var a=+m[1], b=+m[2];
+      /* 29/09/26 can only be day/month; where either could be the month,
+         read it as month/day, which is how this record is written. */
+      return (a>12 && b<=12) ? ymd(m[3],b,a) : ymd(m[3],a,b);
+    }
     if((m=t.match(/([A-Za-z]{3,})\.?\s+(\d{4})/))){
       var mo=MON[m[1].slice(0,3).toLowerCase()];
       if(mo) return ymd(m[2],mo,0);
@@ -1003,6 +1014,14 @@ window.addEventListener('beforeprint', buildReimport);
     for(var i=0;i<RUNNING.length;i++){ if(RUNNING[i].test(line)) return true; }
     return false;
   }
+  /* A record saved before the fix above has the furniture baked into a cell,
+     mid-sentence. It is data now, but it is recognisable data: an address, a
+     page count and a timestamp, run together. Clean it on the way in. */
+  /* Stays on one line: eating the newline would join the next row onto the
+     end of this one. */
+  var INLINE=/[ \t]*https?:\/\/\S+[ \t]+Page[ \t]+\d+[ \t]+of[ \t]+\d+[ \t]+[^\n]*?\d{1,2}:\d{2}[ \t]*(?:AM|PM)[ \t]*/gi;
+  window.atriaScrubFurniture=function(text){ return String(text||'').replace(INLINE,''); };
+
   window.atriaStripRunningHeads=function(pages){
     function edge(page, top){
       var lines=page.split('\n');
@@ -1033,7 +1052,7 @@ window.addEventListener('beforeprint', buildReimport);
         return l.join('\n');
       });
     });
-    return pages;
+    return pages.map(window.atriaScrubFurniture);
   };
 
   window.atriaPdfText=function(file){

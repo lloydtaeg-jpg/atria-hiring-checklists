@@ -132,6 +132,14 @@
     for(var i=0;i<RUNNING.length;i++){ if(RUNNING[i].test(line)) return true; }
     return false;
   }
+  /* A record saved before the fix above has the furniture baked into a cell,
+     mid-sentence. It is data now, but it is recognisable data: an address, a
+     page count and a timestamp, run together. Clean it on the way in. */
+  /* Stays on one line: eating the newline would join the next row onto the
+     end of this one. */
+  var INLINE=/[ \t]*https?:\/\/\S+[ \t]+Page[ \t]+\d+[ \t]+of[ \t]+\d+[ \t]+[^\n]*?\d{1,2}:\d{2}[ \t]*(?:AM|PM)[ \t]*/gi;
+  window.atriaScrubFurniture=function(text){ return String(text||'').replace(INLINE,''); };
+
   window.atriaStripRunningHeads=function(pages){
     function edge(page, top){
       var lines=page.split('\n');
@@ -162,7 +170,7 @@
         return l.join('\n');
       });
     });
-    return pages;
+    return pages.map(window.atriaScrubFurniture);
   };
 
   window.atriaPdfText=function(file){
