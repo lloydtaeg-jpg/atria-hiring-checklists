@@ -1520,9 +1520,21 @@ setupCsvDrop(document.getElementById('csvDropVitals'), document.getElementById('
   }
   var TEXTIN='input[type="text"],input[type="date"],input[type="number"],input[type="tel"],input[type="email"],input:not([type])';
 
+  /* The fields are restored by position, so a PDF saved before the form was
+     reordered would put every answer in the wrong box. The shape travels with
+     the answers and is checked before anything is written. */
+  function shape(){
+    return [list(document,'[contenteditable]').length,
+            list(document,TEXTIN).length,
+            list(document,'textarea').length,
+            list(document,'input[type="checkbox"]').length,
+            list(document,'.box').length].join('/');
+  }
+  window.atriaShape=shape;
+
   window.atriaGenericCollect=function(){
     return {
-      t:'atria-form', v:1, id:window.atriaFormId||document.title,
+      t:'atria-form', v:1, id:window.atriaFormId||document.title, sig:shape(),
       ce:list(document,'[contenteditable]').map(ceText),
       inp:list(document,TEXTIN).map(function(e){ return e.value; }),
       ta:list(document,'textarea').map(function(e){ return e.value; }),
@@ -1531,6 +1543,9 @@ setupCsvDrop(document.getElementById('csvDropVitals'), document.getElementById('
     };
   };
   window.atriaGenericApply=function(d){
+    /* null means "these answers do not fit this form"; a half-filled record
+       is worse than none */
+    if(d && d.sig && d.sig!==shape()){ return null; }
     var n=0;
     function pour(nodes, vals, set){
       if(!vals) return;
@@ -1572,6 +1587,10 @@ setupCsvDrop(document.getElementById('csvDropVitals'), document.getElementById('
           return;
         }
         var filled=window.atriaApply(data);
+        if(filled===null){
+          say('That PDF was saved by an earlier version of this form, and its fields no longer line up. Nothing was changed \u2014 copy the answers across from the printed PDF.','warn');
+          return;
+        }
         say('Restored '+filled+' filled field'+(filled===1?'':'s')+' from '+f.name+'. Check each section before saving.','ok');
       }).catch(function(err){
         say(String(err&&err.message||err),'warn');

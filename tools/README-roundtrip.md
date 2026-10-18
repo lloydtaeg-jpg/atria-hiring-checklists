@@ -68,6 +68,9 @@ collect/apply, so the JSON export and the PDF stay in step.
 Elements inside `.import-panel`, `.atria-import`, `.import-wrap` or anything
 marked `data-atria-skip` are page furniture, not form, and are left out.
 
-If a document's fields are reordered or added to, PDFs saved by the older
-version restore by position and will land in the wrong boxes. Change the
-`ATRIA-DATA-V1` marker when that happens.
+The fields are restored by position, so reordering a form would put every
+answer from an older PDF in the wrong box. The form's shape — how many
+contenteditable fields, inputs, textareas, checkboxes and `.box` spans it has —
+travels with the answers as `sig` and is checked before anything is written.
+A mismatch writes nothing and says so; Medical History falls back to reading the
+PDF as text. A PDF saved before `sig` existed carries none, and still restores.

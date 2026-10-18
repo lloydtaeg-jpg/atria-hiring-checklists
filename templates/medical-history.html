@@ -93,6 +93,16 @@ ul.check li:before{content:'';top:.45rem;width:9px;height:9px;border-radius:2px;
 .add-btn{margin:0 0 .5rem;background:transparent;border:1px dashed var(--aegean);color:var(--aegean-dark);border-radius:6px;padding:.35rem .7rem;font-family:'Inter',sans-serif;font-size:.75rem;font-weight:500;cursor:pointer;}.add-btn:hover{background:rgba(111,151,151,.08);border-color:var(--aegean-dark);}@media print{.add-btn{display:none;}}
 .goal{position:relative;}.del-btn{background:transparent;border:none;color:var(--text-light);cursor:pointer;font-size:1rem;line-height:1;padding:.1rem .35rem;border-radius:4px;}.del-btn:hover{color:#b04a4a;background:rgba(176,74,74,.09);}.goal-del{position:absolute;top:.45rem;right:.45rem;}.qtable th.delcol{border:none;background:transparent;width:52px;padding:0;}.qtable td.delcell{border:none;text-align:center;width:52px;padding:.15rem;white-space:nowrap;}.qtable td.delcell .del-btn{vertical-align:middle;}.rowmv{display:inline-flex;flex-direction:column;gap:3px;vertical-align:middle;margin-right:3px;}.mv-btn{background:transparent;border:none;color:var(--text-light);cursor:pointer;font-size:.58rem;line-height:1;padding:1px 3px;border-radius:3px;}.mv-btn:hover{color:var(--aegean-dark);background:rgba(90,130,130,.12);}@media print{.del-btn,.mv-btn,.rowmv,.qtable td.delcell,.qtable th.delcol{display:none;}}
 @media print{
+  /* instructions for filling the form in are not part of the record */
+  .intro{display:none!important;}
+  /* an empty field prints empty: the column heading already says what goes
+     there, and "Notes" in every blank cell just adds noise */
+  [contenteditable]:empty:before,
+  .sigfill:empty:before,
+  .notes:empty:before,
+  .qtable td[contenteditable]:empty:before{content:''!important;}
+}
+@media print{
   /* Safari prints with background graphics off by default. A ticked box was a
      coloured square with a white tick, so it printed blank. On paper the box
      is outlined and the tick is dark: it reads the same either way. */
@@ -192,7 +202,15 @@ ul.check li:before{content:'';top:.45rem;width:9px;height:9px;border-radius:2px;
   </div>
   <div class="card open">
   <div class="card-hd" onclick="this.parentNode.classList.toggle('open')">
-    <span class="num">4</span><span class="ic"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+    <span class="num">4</span><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="4"/><line x1="12" y1="8" x2="12" y2="16"/></svg></span>
+    <div class="card-info"><div class="card-title">Current Medications</div><div class="card-sub">Active medication list</div></div>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div class="card-bd"><div class="card-inner"><div class="sec"><div class="sec-lbl">Medications</div><button type="button" class="add-btn" onclick="addTableRow(this)">+ Add row</button><table class="qtable"><thead><tr><th>Medication</th><th>Dose</th><th>Frequency</th><th>Prescriber</th><th class="delcol"></th></tr></thead><tbody><tr><td contenteditable="true" data-ph="Name"></td><td contenteditable="true" data-ph="Dose"></td><td contenteditable="true" data-ph="e.g. once daily"></td><td contenteditable="true" data-ph="Prescriber"></td><td class="delcell"><span class="rowmv"><button type="button" class="mv-btn" onclick="moveRow(this,-1)" title="Move up" aria-label="Move row up">&#9650;</button><button type="button" class="mv-btn" onclick="moveRow(this,1)" title="Move down" aria-label="Move row down">&#9660;</button></span><button type="button" class="del-btn" onclick="delTableRow(this)" title="Delete row" aria-label="Delete row">&times;</button></td></tr><tr><td contenteditable="true" data-ph="Name"></td><td contenteditable="true" data-ph="Dose"></td><td contenteditable="true" data-ph="e.g. once daily"></td><td contenteditable="true" data-ph="Prescriber"></td><td class="delcell"><span class="rowmv"><button type="button" class="mv-btn" onclick="moveRow(this,-1)" title="Move up" aria-label="Move row up">&#9650;</button><button type="button" class="mv-btn" onclick="moveRow(this,1)" title="Move down" aria-label="Move row down">&#9660;</button></span><button type="button" class="del-btn" onclick="delTableRow(this)" title="Delete row" aria-label="Delete row">&times;</button></td></tr><tr><td contenteditable="true" data-ph="Name"></td><td contenteditable="true" data-ph="Dose"></td><td contenteditable="true" data-ph="e.g. once daily"></td><td contenteditable="true" data-ph="Prescriber"></td><td class="delcell"><span class="rowmv"><button type="button" class="mv-btn" onclick="moveRow(this,-1)" title="Move up" aria-label="Move row up">&#9650;</button><button type="button" class="mv-btn" onclick="moveRow(this,1)" title="Move down" aria-label="Move row down">&#9660;</button></span><button type="button" class="del-btn" onclick="delTableRow(this)" title="Delete row" aria-label="Delete row">&times;</button></td></tr><tr><td contenteditable="true" data-ph="Name"></td><td contenteditable="true" data-ph="Dose"></td><td contenteditable="true" data-ph="e.g. once daily"></td><td contenteditable="true" data-ph="Prescriber"></td><td class="delcell"><span class="rowmv"><button type="button" class="mv-btn" onclick="moveRow(this,-1)" title="Move up" aria-label="Move row up">&#9650;</button><button type="button" class="mv-btn" onclick="moveRow(this,1)" title="Move down" aria-label="Move row down">&#9660;</button></span><button type="button" class="del-btn" onclick="delTableRow(this)" title="Delete row" aria-label="Delete row">&times;</button></td></tr><tr><td contenteditable="true" data-ph="Name"></td><td contenteditable="true" data-ph="Dose"></td><td contenteditable="true" data-ph="e.g. once daily"></td><td contenteditable="true" data-ph="Prescriber"></td><td class="delcell"><span class="rowmv"><button type="button" class="mv-btn" onclick="moveRow(this,-1)" title="Move up" aria-label="Move row up">&#9650;</button><button type="button" class="mv-btn" onclick="moveRow(this,1)" title="Move down" aria-label="Move row down">&#9660;</button></span><button type="button" class="del-btn" onclick="delTableRow(this)" title="Delete row" aria-label="Delete row">&times;</button></td></tr><tr><td contenteditable="true" data-ph="Name"></td><td contenteditable="true" data-ph="Dose"></td><td contenteditable="true" data-ph="e.g. once daily"></td><td contenteditable="true" data-ph="Prescriber"></td><td class="delcell"><span class="rowmv"><button type="button" class="mv-btn" onclick="moveRow(this,-1)" title="Move up" aria-label="Move row up">&#9650;</button><button type="button" class="mv-btn" onclick="moveRow(this,1)" title="Move down" aria-label="Move row down">&#9660;</button></span><button type="button" class="del-btn" onclick="delTableRow(this)" title="Delete row" aria-label="Delete row">&times;</button></td></tr><tr><td contenteditable="true" data-ph="Name"></td><td contenteditable="true" data-ph="Dose"></td><td contenteditable="true" data-ph="e.g. once daily"></td><td contenteditable="true" data-ph="Prescriber"></td><td class="delcell"><span class="rowmv"><button type="button" class="mv-btn" onclick="moveRow(this,-1)" title="Move up" aria-label="Move row up">&#9650;</button><button type="button" class="mv-btn" onclick="moveRow(this,1)" title="Move down" aria-label="Move row down">&#9660;</button></span><button type="button" class="del-btn" onclick="delTableRow(this)" title="Delete row" aria-label="Delete row">&times;</button></td></tr></tbody></table></div></div></div>
+  </div>
+  <div class="card open">
+  <div class="card-hd" onclick="this.parentNode.classList.toggle('open')">
+    <span class="num">5</span><span class="ic"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
     <div class="card-info"><div class="card-title">Surgical & Procedure History</div><div class="card-sub">Past surgeries and procedures</div></div>
     <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
   </div>
@@ -200,21 +218,13 @@ ul.check li:before{content:'';top:.45rem;width:9px;height:9px;border-radius:2px;
   </div>
   <div class="card open">
   <div class="card-hd" onclick="this.parentNode.classList.toggle('open')">
-    <span class="num">5</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M9 2v6l-5 10a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3L15 8V2"/><path d="M8 2h8"/><path d="M7.5 15h9"/></svg></span>
+    <span class="num">6</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M9 2v6l-5 10a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3L15 8V2"/><path d="M8 2h8"/><path d="M7.5 15h9"/></svg></span>
     <div class="card-info"><div class="card-title">Tests &amp; Investigations</div><div class="card-sub">Results and findings</div></div>
     <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
   </div>
   <div class="card-bd"><div class="card-inner"><div class="sec"><div class="sec-lbl">Tests</div><button type="button" class="add-btn" onclick="addTableRow(this)">+ Add row</button><table class="qtable"><thead><tr><th>Test</th><th>Date</th><th>Findings</th><th class="delcol"></th></tr></thead><tbody><tr><td contenteditable="true" data-ph="Test"></td><td contenteditable="true" data-ph="Date"></td><td contenteditable="true" data-ph="Findings"></td><td class="delcell"><span class="rowmv"><button type="button" class="mv-btn" onclick="moveRow(this,-1)" title="Move up" aria-label="Move row up">&#9650;</button><button type="button" class="mv-btn" onclick="moveRow(this,1)" title="Move down" aria-label="Move row down">&#9660;</button></span><button type="button" class="del-btn" onclick="delTableRow(this)" title="Delete row" aria-label="Delete row">&times;</button></td></tr><tr><td contenteditable="true" data-ph="Test"></td><td contenteditable="true" data-ph="Date"></td><td contenteditable="true" data-ph="Findings"></td><td class="delcell"><span class="rowmv"><button type="button" class="mv-btn" onclick="moveRow(this,-1)" title="Move up" aria-label="Move row up">&#9650;</button><button type="button" class="mv-btn" onclick="moveRow(this,1)" title="Move down" aria-label="Move row down">&#9660;</button></span><button type="button" class="del-btn" onclick="delTableRow(this)" title="Delete row" aria-label="Delete row">&times;</button></td></tr><tr><td contenteditable="true" data-ph="Test"></td><td contenteditable="true" data-ph="Date"></td><td contenteditable="true" data-ph="Findings"></td><td class="delcell"><span class="rowmv"><button type="button" class="mv-btn" onclick="moveRow(this,-1)" title="Move up" aria-label="Move row up">&#9650;</button><button type="button" class="mv-btn" onclick="moveRow(this,1)" title="Move down" aria-label="Move row down">&#9660;</button></span><button type="button" class="del-btn" onclick="delTableRow(this)" title="Delete row" aria-label="Delete row">&times;</button></td></tr><tr><td contenteditable="true" data-ph="Test"></td><td contenteditable="true" data-ph="Date"></td><td contenteditable="true" data-ph="Findings"></td><td class="delcell"><span class="rowmv"><button type="button" class="mv-btn" onclick="moveRow(this,-1)" title="Move up" aria-label="Move row up">&#9650;</button><button type="button" class="mv-btn" onclick="moveRow(this,1)" title="Move down" aria-label="Move row down">&#9660;</button></span><button type="button" class="del-btn" onclick="delTableRow(this)" title="Delete row" aria-label="Delete row">&times;</button></td></tr><tr><td contenteditable="true" data-ph="Test"></td><td contenteditable="true" data-ph="Date"></td><td contenteditable="true" data-ph="Findings"></td><td class="delcell"><span class="rowmv"><button type="button" class="mv-btn" onclick="moveRow(this,-1)" title="Move up" aria-label="Move row up">&#9650;</button><button type="button" class="mv-btn" onclick="moveRow(this,1)" title="Move down" aria-label="Move row down">&#9660;</button></span><button type="button" class="del-btn" onclick="delTableRow(this)" title="Delete row" aria-label="Delete row">&times;</button></td></tr></tbody></table></div></div></div>
   </div>
 
-  <div class="card open">
-  <div class="card-hd" onclick="this.parentNode.classList.toggle('open')">
-    <span class="num">6</span><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="4"/><line x1="12" y1="8" x2="12" y2="16"/></svg></span>
-    <div class="card-info"><div class="card-title">Current Medications</div><div class="card-sub">Active medication list</div></div>
-    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-  </div>
-  <div class="card-bd"><div class="card-inner"><div class="sec"><div class="sec-lbl">Medications</div><button type="button" class="add-btn" onclick="addTableRow(this)">+ Add row</button><table class="qtable"><thead><tr><th>Medication</th><th>Dose</th><th>Frequency</th><th>Prescriber</th><th class="delcol"></th></tr></thead><tbody><tr><td contenteditable="true" data-ph="Name"></td><td contenteditable="true" data-ph="Dose"></td><td contenteditable="true" data-ph="e.g. once daily"></td><td contenteditable="true" data-ph="Prescriber"></td><td class="delcell"><span class="rowmv"><button type="button" class="mv-btn" onclick="moveRow(this,-1)" title="Move up" aria-label="Move row up">&#9650;</button><button type="button" class="mv-btn" onclick="moveRow(this,1)" title="Move down" aria-label="Move row down">&#9660;</button></span><button type="button" class="del-btn" onclick="delTableRow(this)" title="Delete row" aria-label="Delete row">&times;</button></td></tr><tr><td contenteditable="true" data-ph="Name"></td><td contenteditable="true" data-ph="Dose"></td><td contenteditable="true" data-ph="e.g. once daily"></td><td contenteditable="true" data-ph="Prescriber"></td><td class="delcell"><span class="rowmv"><button type="button" class="mv-btn" onclick="moveRow(this,-1)" title="Move up" aria-label="Move row up">&#9650;</button><button type="button" class="mv-btn" onclick="moveRow(this,1)" title="Move down" aria-label="Move row down">&#9660;</button></span><button type="button" class="del-btn" onclick="delTableRow(this)" title="Delete row" aria-label="Delete row">&times;</button></td></tr><tr><td contenteditable="true" data-ph="Name"></td><td contenteditable="true" data-ph="Dose"></td><td contenteditable="true" data-ph="e.g. once daily"></td><td contenteditable="true" data-ph="Prescriber"></td><td class="delcell"><span class="rowmv"><button type="button" class="mv-btn" onclick="moveRow(this,-1)" title="Move up" aria-label="Move row up">&#9650;</button><button type="button" class="mv-btn" onclick="moveRow(this,1)" title="Move down" aria-label="Move row down">&#9660;</button></span><button type="button" class="del-btn" onclick="delTableRow(this)" title="Delete row" aria-label="Delete row">&times;</button></td></tr><tr><td contenteditable="true" data-ph="Name"></td><td contenteditable="true" data-ph="Dose"></td><td contenteditable="true" data-ph="e.g. once daily"></td><td contenteditable="true" data-ph="Prescriber"></td><td class="delcell"><span class="rowmv"><button type="button" class="mv-btn" onclick="moveRow(this,-1)" title="Move up" aria-label="Move row up">&#9650;</button><button type="button" class="mv-btn" onclick="moveRow(this,1)" title="Move down" aria-label="Move row down">&#9660;</button></span><button type="button" class="del-btn" onclick="delTableRow(this)" title="Delete row" aria-label="Delete row">&times;</button></td></tr><tr><td contenteditable="true" data-ph="Name"></td><td contenteditable="true" data-ph="Dose"></td><td contenteditable="true" data-ph="e.g. once daily"></td><td contenteditable="true" data-ph="Prescriber"></td><td class="delcell"><span class="rowmv"><button type="button" class="mv-btn" onclick="moveRow(this,-1)" title="Move up" aria-label="Move row up">&#9650;</button><button type="button" class="mv-btn" onclick="moveRow(this,1)" title="Move down" aria-label="Move row down">&#9660;</button></span><button type="button" class="del-btn" onclick="delTableRow(this)" title="Delete row" aria-label="Delete row">&times;</button></td></tr><tr><td contenteditable="true" data-ph="Name"></td><td contenteditable="true" data-ph="Dose"></td><td contenteditable="true" data-ph="e.g. once daily"></td><td contenteditable="true" data-ph="Prescriber"></td><td class="delcell"><span class="rowmv"><button type="button" class="mv-btn" onclick="moveRow(this,-1)" title="Move up" aria-label="Move row up">&#9650;</button><button type="button" class="mv-btn" onclick="moveRow(this,1)" title="Move down" aria-label="Move row down">&#9660;</button></span><button type="button" class="del-btn" onclick="delTableRow(this)" title="Delete row" aria-label="Delete row">&times;</button></td></tr><tr><td contenteditable="true" data-ph="Name"></td><td contenteditable="true" data-ph="Dose"></td><td contenteditable="true" data-ph="e.g. once daily"></td><td contenteditable="true" data-ph="Prescriber"></td><td class="delcell"><span class="rowmv"><button type="button" class="mv-btn" onclick="moveRow(this,-1)" title="Move up" aria-label="Move row up">&#9650;</button><button type="button" class="mv-btn" onclick="moveRow(this,1)" title="Move down" aria-label="Move row down">&#9660;</button></span><button type="button" class="del-btn" onclick="delTableRow(this)" title="Delete row" aria-label="Delete row">&times;</button></td></tr></tbody></table></div></div></div>
-  </div>
   <div class="card open">
   <div class="card-hd" onclick="this.parentNode.classList.toggle('open')">
     <span class="num">7</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
@@ -756,8 +766,11 @@ window.importRecord=function(){
         var carried=window.atriaReadData(all);
         if(carried){
           var n=window.atriaApply(carried);
-          say('Restored '+n+' filled field'+(n===1?'':'s')+' from this PDF. Check each section before saving.','ok');
-          return;
+          if(n!==null){
+            say('Restored '+n+' filled field'+(n===1?'':'s')+' from this PDF. Check each section before saving.','ok');
+            return;
+          }
+          /* saved before the form was reordered: read it as text instead */
         }
         if(typeof window.importRecord==='function') window.importRecord();
         var note='Read '+files.length+' file'+(files.length>1?'s':'')+', '+all.length.toLocaleString()
@@ -1099,9 +1112,21 @@ window.addEventListener('beforeprint', buildReimport);
   }
   var TEXTIN='input[type="text"],input[type="date"],input[type="number"],input[type="tel"],input[type="email"],input:not([type])';
 
+  /* The fields are restored by position, so a PDF saved before the form was
+     reordered would put every answer in the wrong box. The shape travels with
+     the answers and is checked before anything is written. */
+  function shape(){
+    return [list(document,'[contenteditable]').length,
+            list(document,TEXTIN).length,
+            list(document,'textarea').length,
+            list(document,'input[type="checkbox"]').length,
+            list(document,'.box').length].join('/');
+  }
+  window.atriaShape=shape;
+
   window.atriaGenericCollect=function(){
     return {
-      t:'atria-form', v:1, id:window.atriaFormId||document.title,
+      t:'atria-form', v:1, id:window.atriaFormId||document.title, sig:shape(),
       ce:list(document,'[contenteditable]').map(ceText),
       inp:list(document,TEXTIN).map(function(e){ return e.value; }),
       ta:list(document,'textarea').map(function(e){ return e.value; }),
@@ -1110,6 +1135,9 @@ window.addEventListener('beforeprint', buildReimport);
     };
   };
   window.atriaGenericApply=function(d){
+    /* null means "these answers do not fit this form"; a half-filled record
+       is worse than none */
+    if(d && d.sig && d.sig!==shape()){ return null; }
     var n=0;
     function pour(nodes, vals, set){
       if(!vals) return;
@@ -1151,6 +1179,10 @@ window.addEventListener('beforeprint', buildReimport);
           return;
         }
         var filled=window.atriaApply(data);
+        if(filled===null){
+          say('That PDF was saved by an earlier version of this form, and its fields no longer line up. Nothing was changed \u2014 copy the answers across from the printed PDF.','warn');
+          return;
+        }
         say('Restored '+filled+' filled field'+(filled===1?'':'s')+' from '+f.name+'. Check each section before saving.','ok');
       }).catch(function(err){
         say(String(err&&err.message||err),'warn');
