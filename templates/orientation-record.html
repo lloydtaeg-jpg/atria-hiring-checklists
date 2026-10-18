@@ -122,6 +122,11 @@ textarea.field-input{ min-height:64px; resize:vertical; border:1px solid rgba(47
   .atria-data .adl{font-size:3.2pt;line-height:1;color:#fff;white-space:normal;
     overflow-wrap:anywhere;letter-spacing:0;margin:0}
 }
+
+@media print{
+  /* keep the tick when the browser is printing without background graphics */
+  .check-box{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
 </style>
 </head>
 <body>
@@ -297,6 +302,55 @@ textarea.field-input{ min-height:64px; resize:vertical; border:1px solid rgba(47
     return pending;
   }
 
+  /* A browser prints its own header and footer into the page margin: the page
+     title and time at the top, the address and "Page 3 of 18" at the bottom.
+     They are ordinary text to a PDF reader, so without this they get read as
+     part of the record and end up inside a findings or contact field. */
+  var RUNNING=[
+    /\bPage\s+\d+\s+of\s+\d+\b/i,
+    /\d{4}-\d{2}-\d{2},?\s+\d{1,2}:\d{2}(:\d{2})?\s*(AM|PM)?$/i,
+    /\d{1,2}\/\d{1,2}\/\d{2,4},?\s+\d{1,2}:\d{2}(:\d{2})?\s*(AM|PM)?$/i,
+    /^\S*:\/\/\S+(\s+\d+\s*\/\s*\d+)?$/i,   /* an address, with or without Chrome's 3/12 */
+    /^\d+\s*\/\s*\d+$/                      /* a bare page counter */
+  ];
+  function looksRunning(line){
+    if(!line) return false;
+    for(var i=0;i<RUNNING.length;i++){ if(RUNNING[i].test(line)) return true; }
+    return false;
+  }
+  window.atriaStripRunningHeads=function(pages){
+    function edge(page, top){
+      var lines=page.split('\n');
+      while(lines.length && looksRunning(top ? lines[0] : lines[lines.length-1])){
+        if(top){ lines.shift(); } else { lines.pop(); }
+      }
+      return lines.join('\n');
+    }
+    pages=pages.map(function(p){ return edge(edge(p,true),false); });
+    if(pages.length<2){ return pages; }
+    /* whatever is left and still repeats, word for word bar the numbers, at the
+       same edge of most pages is also furniture */
+    function norm(s){ return String(s||'').replace(/\d+/g,'#').replace(/\s+/g,' ').trim(); }
+    [true,false].forEach(function(top){
+      var keys=pages.map(function(p){
+        var l=p.split('\n'); if(!l.length) return '';
+        return norm(top ? l[0] : l[l.length-1]);
+      });
+      var counts={};
+      keys.forEach(function(k){ if(k){ counts[k]=(counts[k]||0)+1; } });
+      var need=Math.max(2, Math.ceil(pages.length*0.6));
+      pages=pages.map(function(p,i){
+        if(!keys[i] || counts[keys[i]]<need) return p;
+        var l=p.split('\n'), line=top ? l[0] : l[l.length-1];
+        /* never drop something that looks like a record row */
+        if(line.indexOf('|')>-1 || /^[A-Z][A-Z &/]{4,}$/.test(line.trim())) return p;
+        if(top){ l.shift(); } else { l.pop(); }
+        return l.join('\n');
+      });
+    });
+    return pages;
+  };
+
   window.atriaPdfText=function(file){
     return ensureLib().then(function(lib){
       return file.arrayBuffer().then(function(buf){
@@ -313,7 +367,7 @@ textarea.field-input{ min-height:64px; resize:vertical; border:1px solid rgba(47
           });
         })(n);
       }
-      return chain.then(function(){ return out.join('\n'); });
+      return chain.then(function(){ return window.atriaStripRunningHeads(out).join('\n'); });
     });
   };
 

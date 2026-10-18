@@ -36,6 +36,20 @@ page: only a grey line saying the file carries its own answers. They are still
 in the PDF's text layer, which is what makes the upload work, so Select All in a
 PDF reader will find them.
 
+## Two things the browser does to a printed page
+
+**It prints its own header and footer** into the margin: the page title and time
+at the top, the address and "Page 3 of 18" at the bottom. To a PDF reader those
+are ordinary text, so without `atriaStripRunningHeads` they are read as part of
+the record and land inside a findings or contact field. Worse, a page break in
+the middle of a wrapped cell leaves the furniture between the two halves, so the
+two halves never rejoin and every row after it is lost.
+
+**Safari prints with background graphics off by default.** A ticked box drawn as
+a coloured square with a white tick prints blank: the square's colour is a
+background and the tick is white on white. Every document therefore draws a
+ticked box on paper as a dark tick in an outlined box, which needs no colour.
+
 ## Adding it to a new document
 
 Each document supplies two hooks:
